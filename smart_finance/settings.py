@@ -3,9 +3,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-change-me-in-production-smart-finance-2024'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-default-key-for-dev-only')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -80,10 +80,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# API Keys — recommended to set via environment variables on Railway
+# API Keys — MUST be set via environment variables on Railway
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyB35Jog4pEYINuMKoOKF8tn1Z3mLJ-sWPM')
-NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '082553f8-0e1c-4d9e-b559-7d18b39b6290')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '')
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
