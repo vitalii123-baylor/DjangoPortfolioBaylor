@@ -1,3 +1,3 @@
 @echo off
-set GEMINI_API_KEY=AIzaSyB35Jog4pEYINuMKoOKF8tn1Z3mLJ-sWPM
+set GEMINI_API_KEY=
 python manage.py runserver
