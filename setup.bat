@@ -3,7 +3,7 @@ echo ============================================
 echo   Smart Financial Decision Maker — Setup
 echo ============================================
 
-set GEMINI_API_KEY=AIzaSyB35Jog4pEYINuMKoOKF8tn1Z3mLJ-sWPM
+set GEMINI_API_KEY=
 
 echo.
 echo [1/5] Installing dependencies...
