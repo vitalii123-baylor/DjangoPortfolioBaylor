@@ -9,9 +9,10 @@ from .models import Budget, BudgetCategory, Expense, DailyAdvice
 from .claude_service import categorize_expense, generate_daily_advice
 
 def get_demo_user():
-    return User.objects.filter(is_superuser=True).first() or User.objects.first()
-
-from django.contrib.auth.decorators import login_required
+    user = User.objects.filter(username='demo').first()
+    if not user:
+        user = User.objects.create_user(username='demo', password='password_not_needed_for_demo')
+    return user
 
 def get_dashboard_data(user):
     budget = Budget.objects.filter(user=user).order_by('-current_month').first()
@@ -69,18 +70,16 @@ def get_dashboard_data(user):
         'expenses': [{'id': e.id, 'text': e.original_text, 'amount': float(e.amount), 'cat': e.category, 'date': e.date.strftime('%b %d')} for e in expenses[:10]]
     }
 
-@login_required
 def dashboard(request):
-    user = request.user
+    user = get_demo_user()
     data = get_dashboard_data(user)
     today_advice = DailyAdvice.objects.filter(user=user, created_at__date=datetime.date.today()).first()
     return render(request, 'expense_tracker/dashboard.html', {**data, 'today_advice': today_advice})
 
-@login_required
 @require_POST
 def add_expense(request):
     try:
-        user = request.user
+        user = get_demo_user()
         data = json.loads(request.body)
         result = categorize_expense(data.get('text', ''))
         Expense.objects.create(
@@ -91,10 +90,9 @@ def add_expense(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-@login_required
 @require_POST
 def seed_demo_data(request):
-    user = request.user
+    user = get_demo_user()
     today = datetime.date.today()
     
     # Создаем данные, распределенные по времени
@@ -116,31 +114,27 @@ def seed_demo_data(request):
         )
     return JsonResponse(get_dashboard_data(user))
 
-@login_required
 @require_POST
 def clear_data(request):
-    user = request.user
+    user = get_demo_user()
     Expense.objects.filter(user=user).delete()
     return JsonResponse(get_dashboard_data(user))
 
-@login_required
 @require_POST
 def update_budget_limit(request):
-    user = request.user
+    user = get_demo_user()
     data = json.loads(request.body)
     budget = Budget.objects.filter(user=user).first()
     budget.total_monthly_limit = Decimal(str(data.get('limit', 2500)))
     budget.save()
     return JsonResponse(get_dashboard_data(user))
 
-@login_required
 def get_advice(request):
-    user = request.user
+    user = get_demo_user()
     advice = generate_daily_advice("Analysis of spending patterns.")
     return JsonResponse({'advice': advice})
 
-@login_required
 def delete_expense(request, pk):
-    user = request.user
+    user = get_demo_user()
     get_object_or_404(Expense, pk=pk, user=user).delete()
     return JsonResponse(get_dashboard_data(user))

@@ -10,13 +10,13 @@ from .gemini_service import generate_sentiment_insights
 from .news_service import fetch_real_news
 
 def get_demo_user():
-    return User.objects.filter(is_superuser=True).first() or User.objects.first()
+    user = User.objects.filter(username='demo').first()
+    if not user:
+        user = User.objects.create_user(username='demo', password='password_not_needed_for_demo')
+    return user
 
-from django.contrib.auth.decorators import login_required
-
-@login_required
 def dashboard(request):
-    user = request.user
+    user = get_demo_user()
     searches = SentimentSearch.objects.filter(user=user).select_related('result').order_by('-created_at')[:10]
     latest_result = None
     if searches.exists():
@@ -31,11 +31,10 @@ def dashboard(request):
     }
     return render(request, 'sentiment_analyzer/dashboard.html', context)
 
-@login_required
 @require_POST
 def analyze(request):
     try:
-        user = request.user
+        user = get_demo_user()
         data = json.loads(request.body)
         topic = data.get('topic', '').strip()
         if not topic:
@@ -105,9 +104,8 @@ def analyze(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-@login_required
 def result_detail(request, pk):
-    user = request.user
+    user = get_demo_user()
     result = get_object_or_404(SentimentResult, pk=pk, search__user=user)
     posts = result.posts.all()[:15]
     return JsonResponse({
