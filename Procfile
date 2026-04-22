@@ -1,1 +1,1 @@
-web: gunicorn smart_finance.wsgi:application
+web: python manage.py migrate --noinput && gunicorn smart_finance.wsgi:application
