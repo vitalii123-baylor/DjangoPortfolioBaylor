@@ -12,24 +12,33 @@ def projects(request):
     project_list = [
         {
             'title': 'Smart Expense Tracker',
-            'desc': 'AI-driven financial management with automatic expense categorization and insights.',
+            'desc': 'AI-driven financial management with automatic expense categorization, budget tracking, and personalized spending insights powered by Gemini AI.',
             'url': '/api/expenses/dashboard/',
             'icon': '💰',
-            'tech': ['Django', 'React', 'Gemini AI']
+            'tech': ['Django', 'Python', 'Gemini AI', 'Chart.js'],
+            'module_tag': 'FINANCE · AI',
+            'accent': 'var(--cyan)',
+            'accent_glow': 'var(--cyan-glow)',
         },
         {
             'title': 'AI Sentiment Analyzer',
-            'desc': 'Analyze public opinion on any topic using ML and generative AI synthesis.',
+            'desc': 'Real-time public opinion analysis on any topic using generative AI synthesis. Processes live data streams and produces structured sentiment reports.',
             'url': '/api/sentiment/dashboard/',
-            'icon': '📊',
-            'tech': ['ML', 'Python', 'Gemini AI']
+            'icon': '📡',
+            'tech': ['Python', 'Gemini AI', 'NLP', 'REST API'],
+            'module_tag': 'INTEL · ML',
+            'accent': 'var(--purple)',
+            'accent_glow': 'var(--purple-glow)',
         },
         {
-            'title': 'Cyber-Security Bot',
-            'desc': 'A personalized AI assistant trained on professional profile and security concepts.',
+            'title': 'Portfolio AI Assistant',
+            'desc': 'A personalized AI assistant embedded in this portfolio — trained on my professional profile, stack, and cybersecurity domain knowledge.',
             'url': '#',
             'icon': '🛡️',
-            'tech': ['NLP', 'Gemini AI']
+            'tech': ['Gemini AI', 'Django', 'NLP'],
+            'module_tag': 'SECURITY · BOT',
+            'accent': 'var(--pink)',
+            'accent_glow': 'var(--pink-glow)',
         }
     ]
     return render(request, 'core/projects.html', {'projects': project_list})
