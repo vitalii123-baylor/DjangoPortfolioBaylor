@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VITALII.SYS | Security & Dev{% endblock %}</title>
+    {% load static %}
+    
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/9374/9374944.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #05060b;
+            --n-purple: #a78bfa;
+            --n-blue: #60a5fa;
+            --n-cyan: #22d3ee;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-bright: rgba(255, 255, 255, 0.07);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(96, 165, 250, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 100% 0%, rgba(167, 139, 250, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.05) 0%, transparent 50%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: rgba(5, 6, 11, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 20px 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-brand {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 1.3rem;
+            text-decoration: none;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+        .nav-brand span { color: var(--n-cyan); text-shadow: 0 0 15px var(--n-cyan); }
+
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .nav-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: 0.3s;
+        }
+        .nav-links a:hover { color: #fff; text-shadow: 0 0 10px #fff; }
+
+        /* Global Cyber Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; transition: 0.3s; }
+        *:hover::-webkit-scrollbar-thumb { background: var(--n-purple); box-shadow: 0 0 10px var(--n-purple); }
+        
+        .card, .bento-card, .info-card, .project-card {
+            background: var(--glass) !important;
+            border: 1px solid var(--glass-border) !important;
+            backdrop-filter: blur(30px) !important;
+            border-radius: 24px !important;
+            transition: 0.4s cubic-bezier(0.2, 1, 0.3, 1) !important;
+        }
+        .card:hover { border-color: var(--n-cyan) !important; transform: translateY(-4px); }
+
+        .btn-action {
+            background: #fff; color: #000; border: none; padding: 12px 24px;
+            border-radius: 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-action:hover { box-shadow: 0 0 20px #fff; transform: translateY(-2px); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand"><span>VITALII</span>.SYS</a>
+        <div class="nav-links">
+            <a href="{% url 'projects' %}">Projects</a>
+            <a href="/api/expenses/dashboard/">Fin_Tracker</a>
+            <a href="/api/sentiment/dashboard/">Analysis</a>
+        </div>
+    </nav>
+    {% block content %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

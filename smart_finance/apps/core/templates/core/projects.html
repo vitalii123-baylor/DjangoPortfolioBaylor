@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Projects Hub | Vitalii 2026{% endblock %}
+
+{% block extra_css %}
+<style>
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        padding: 40px 0;
+    }
+    .project-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
+        padding: 32px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .project-card:hover {
+        transform: translateY(-10px);
+        background: rgba(167, 139, 250, 0.05);
+        border-color: rgba(167, 139, 250, 0.3);
+    }
+    .proj-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .proj-title { font-size: 1.4rem; font-weight: 800; color: #fff; }
+    .proj-desc { color: rgba(255,255,255,0.6); line-height: 1.6; font-size: 0.95rem; flex: 1; }
+    .proj-tech { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tech-pill {
+        font-size: 0.75rem;
+        background: rgba(255,255,255,0.05);
+        padding: 4px 10px;
+        border-radius: 8px;
+        color: rgba(255,255,255,0.8);
+    }
+    .btn-visit {
+        margin-top: 10px;
+        padding: 12px;
+        background: #fff;
+        color: #000;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 0 auto; padding: 60px 24px;">
+    <h1 style="font-size: 3rem; font-weight: 800; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Projects Hub</h1>
+    <p style="color: rgba(255,255,255,0.5); font-size: 1.1rem; margin-top: 10px;">A collection of my recent developments in AI, Finance, and Security.</p>
+
+    <div class="projects-grid">
+        {% for proj in projects %}
+        <div class="project-card">
+            <div class="proj-icon">{{ proj.icon }}</div>
+            <div class="proj-title">{{ proj.title }}</div>
+            <div class="proj-desc">{{ proj.desc }}</div>
+            <div class="proj-tech">
+                {% for t in proj.tech %}
+                <span class="tech-pill">{{ t }}</span>
+                {% endfor %}
+            </div>
+            <a href="{{ proj.url }}" class="btn-visit">Open Project ↗</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

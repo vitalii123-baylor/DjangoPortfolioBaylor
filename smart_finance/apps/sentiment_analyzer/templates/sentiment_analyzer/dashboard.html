@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Signal Intelligence :: VITALII.SYS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+    
+    /* Cyber Terminal Input Area */
+    .data-injector {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+    .data-injector::before {
+        content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--n-cyan), transparent);
+        animation: scan-line 3s infinite linear;
+    }
+    @keyframes scan-line { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+    .terminal-input-group {
+        display: flex; gap: 20px; align-items: center;
+        background: rgba(0,0,0,0.3);
+        padding: 10px 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .terminal-prefix { font-family: 'JetBrains Mono'; color: var(--n-cyan); font-weight: 700; font-size: 1rem; }
+    
+    #topic-input {
+        flex: 1; background: transparent; border: none; color: #fff;
+        font-family: 'JetBrains Mono'; font-size: 1.1rem; outline: none;
+    }
+    #topic-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .preset-tag {
+        background: transparent;
+        border: 1px solid rgba(167, 139, 250, 0.2);
+        padding: 6px 14px;
+        border-radius: 8px;
+        color: var(--n-purple);
+        font-family: 'JetBrains Mono';
+        font-size: 0.7rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .preset-tag:hover {
+        background: rgba(167, 139, 250, 0.1);
+        border-color: var(--n-purple);
+        box-shadow: 0 0 15px rgba(167, 139, 250, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .results-grid { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
+    @media (max-width: 1000px) { .results-grid { grid-template-columns: 1fr; } }
+
+    /* Feed Card Style Consistency */
+    .feed-card { 
+        background: var(--glass) !important; 
+        border: 1px solid var(--glass-border) !important; 
+        backdrop-filter: blur(20px);
+        border-radius: 20px; padding: 20px; 
+        transition: 0.3s;
+    }
+    .feed-card:hover { border-color: var(--n-cyan) !important; transform: translateY(-4px); }
+
+    .ai-summary-box {
+        background: rgba(167, 139, 250, 0.03);
+        border-left: 4px solid var(--n-purple);
+        padding: 25px; border-radius: 0 20px 20px 0;
+        line-height: 1.7; font-size: 1.05rem;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .badge { padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.65rem; font-family: 'JetBrains Mono'; }
+    .badge-pos { background: rgba(52, 211, 153, 0.1); color: #34d399; }
+    .badge-neg { background: rgba(248, 113, 113, 0.1); color: #fca5a5; }
+    .badge-neu { background: rgba(156, 163, 175, 0.1); color: #d1d5db; }
+
+    #loading-overlay { display: none; text-align: center; padding: 80px 0; }
+    .decrypt-text { font-family: 'JetBrains Mono'; color: var(--n-cyan); font-size: 0.9rem; margin-top: 20px; letter-spacing: 2px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+    <div style="margin-bottom: 40px;">
+        <div style="font-family: 'JetBrains Mono'; color: var(--n-cyan); font-size: 0.75rem; letter-spacing: 0.3em; margin-bottom: 12px;">[ MODULE :: SIGNAL_INTERCEPTION ]</div>
+        <h2 style="font-size: 2.8rem; font-weight: 800; letter-spacing: -1px;">Market Intelligence</h2>
+    </div>
+
+    <div class="data-injector">
+        <div class="terminal-input-group">
+            <span class="terminal-prefix">SYS.INPUT_></span>
+            <input id="topic-input" type="text" placeholder="Inject topic (e.g. NVIDIA, Bitcoin...)" maxlength="100">
+            <button class="btn-action" onclick="runAnalysis()">RUN_ANALYSIS</button>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="font-family: 'JetBrains Mono'; font-size: 0.65rem; color: rgba(255,255,255,0.3);">PRESETS:</span>
+            {% for topic in suggested_topics %}
+            <button class="preset-tag" onclick="quickTopic('{{ topic }}')">{{ topic }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="loading-overlay">
+        <div style="font-size: 3rem; animation: pulse 1s infinite alternate;">🛡️</div>
+        <div class="decrypt-text">DECRYPTING_SENTIMENT_STREAMS...</div>
+        <div style="width: 200px; height: 2px; background: rgba(255,255,255,0.05); margin: 20px auto; overflow: hidden;">
+            <div style="width: 100%; height: 100%; background: var(--n-cyan); animation: scan-line 1.5s infinite;"></div>
+        </div>
+    </div>
+
+    <div id="results-section" class="results-grid" style="display: none;">
+        <div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+                <div class="card" style="text-align: center; padding: 25px;">
+                    <div id="r-pos-pct" style="font-size: 2.5rem; font-weight: 800; color: #34d399;">—</div>
+                    <div style="font-size: 0.65rem; font-family: 'JetBrains Mono'; color: rgba(255,255,255,0.4);">POSITIVE_PULSE</div>
+                </div>
+                <div class="card" style="text-align: center; padding: 25px;">
+                    <div id="r-neg-pct" style="font-size: 2.5rem; font-weight: 800; color: #f87171;">—</div>
+                    <div style="font-size: 0.65rem; font-family: 'JetBrains Mono'; color: rgba(255,255,255,0.4);">NEGATIVE_FRICTION</div>
+                </div>
+                <div class="card" style="text-align: center; padding: 25px;">
+                    <div id="r-neu-pct" style="font-size: 2.5rem; font-weight: 800; color: #9ca3af;">—</div>
+                    <div style="font-size: 0.65rem; font-family: 'JetBrains Mono'; color: rgba(255,255,255,0.4);">NEUTRAL_BASELINE</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 30px; padding: 30px;">
+                <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--n-purple); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 6px; height: 6px; background: var(--n-purple); border-radius: 50%;"></div>
+                    :: STRATEGIC_AI_INSIGHTS
+                </div>
+                <div id="ai-analysis" class="ai-summary-box"></div>
+            </div>
+
+            <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--n-cyan); margin-bottom: 20px; letter-spacing: 2px;">:: INTERCEPTED_FEED_SAMPLES</div>
+            <div id="posts-feed" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;"></div>
+        </div>
+
+        <div>
+            <div class="card" style="padding: 25px;">
+                <div style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-bottom: 20px;">SENTIMENT_COMPOSITION</div>
+                <canvas id="pieChart"></canvas>
+                
+                <div style="margin-top: 30px; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-bottom: 15px;">TOP_KEYWORDS</div>
+                <div id="keywords-cloud" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            </div>
+
+            <div class="card" style="margin-top: 25px; padding: 25px;">
+                <div style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-bottom: 20px;">RECENT_UPLINKS</div>
+                <div id="search-history" style="display: flex; flex-direction: column; gap: 12px;">
+                    {% for s in searches %}
+                    <div onclick="loadResult({{ s.id }})" class="item-row" style="cursor: pointer; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                        <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; font-weight: 700;">{{ s.topic }}</div>
+                        <div style="font-size: 0.65rem; color: rgba(255,255,255,0.3); margin-top: 5px;">{{ s.created_at|date:"M d, H:i" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="empty-state" class="card" style="text-align: center; padding: 120px 40px;">
+        <div style="font-size: 4rem; margin-bottom: 20px; filter: grayscale(1); opacity: 0.3;">📡</div>
+        <div style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: rgba(255,255,255,0.5);">Awaiting Input Stream...</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const CSRF = '{{ csrf_token }}';
+let pieChart = null;
+
+function quickTopic(t) {
+    document.getElementById('topic-input').value = t;
+    runAnalysis();
+}
+
+async function runAnalysis() {
+    const topic = document.getElementById('topic-input').value.trim();
+    if (!topic) return;
+
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('results-section').style.display = 'none';
+    document.getElementById('loading-overlay').style.display = 'block';
+
+    try {
+        const res = await fetch('/api/sentiment/analyze/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ topic })
+        });
+        const data = await res.json();
+        if (data.error) { alert(data.error); location.reload(); return; }
+        renderResults(data);
+    } catch(e) { location.reload(); }
+}
+
+async function loadResult(id) {
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('results-section').style.display = 'none';
+    document.getElementById('loading-overlay').style.display = 'block';
+    const res = await fetch(`/api/sentiment/result/${id}/`);
+    const data = await res.json();
+    renderResults(data);
+}
+
+function renderResults(data) {
+    document.getElementById('loading-overlay').style.display = 'none';
+    document.getElementById('results-section').style.display = 'grid';
+    
+    document.getElementById('r-pos-pct').textContent = Math.round(data.positive_pct) + '%';
+    document.getElementById('r-neg-pct').textContent = Math.round(data.negative_pct) + '%';
+    document.getElementById('r-neu-pct').textContent = Math.round(data.neutral_pct) + '%';
+    document.getElementById('ai-analysis').textContent = data.ai_analysis;
+
+    const feed = document.getElementById('posts-feed');
+    feed.innerHTML = '';
+    (data.top_posts || data.posts || []).forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'feed-card';
+        const badge = p.sentiment === 'positive' ? 'badge-pos' : p.sentiment === 'negative' ? 'badge-neg' : 'badge-neu';
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-family:'JetBrains Mono'; font-size:0.65rem;">
+                <span style="color:var(--n-cyan);">@NODE_X_${Math.floor(Math.random()*999)}</span>
+                <span class="badge ${badge}">${p.sentiment.toUpperCase()}</span>
+            </div>
+            <div style="font-size:0.85rem; line-height:1.5; color:rgba(255,255,255,0.9);">"${p.text}"</div>
+            <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+                <span style="font-size:0.65rem; color:rgba(255,255,255,0.3);">CONF: ${Math.round(p.confidence*100)}%</span>
+                <a href="${p.url || '#'}" target="_blank" style="color:var(--n-blue); font-size:0.65rem; font-family:'JetBrains Mono'; text-decoration:none;">VERIFY_SRC</a>
+            </div>
+        `;
+        feed.appendChild(div);
+    });
+
+    const cloud = document.getElementById('keywords-cloud');
+    cloud.innerHTML = '';
+    (data.keywords || []).slice(0, 12).forEach(kw => {
+        const span = document.createElement('span');
+        span.style = "padding: 6px 12px; background: rgba(167, 139, 250, 0.05); border: 1px solid rgba(167, 139, 250, 0.1); border-radius: 8px; font-size: 0.65rem; font-family: 'JetBrains Mono'; color: var(--n-purple); text-transform: uppercase;";
+        span.textContent = kw;
+        cloud.appendChild(span);
+    });
+
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Pos', 'Neg', 'Neu'],
+            datasets: [{ data: [data.positive_pct, data.negative_pct, data.neutral_pct], backgroundColor: ['#34d399','#f87171','#9ca3af'], borderWidth: 0 }]
+        },
+        options: { plugins: { legend: { display: false } }, cutout: '75%' }
+    });
+}
+</script>
+{% endblock %}
