@@ -33,7 +33,7 @@ def projects(request):
         {
             'title': 'Portfolio AI Assistant',
             'desc': 'A personalized AI assistant embedded in this portfolio — trained on my professional profile, stack, and cybersecurity domain knowledge.',
-            'url': '#',
+            'url': '/',
             'icon': '🛡️',
             'tech': ['Gemini AI', 'Django', 'NLP'],
             'module_tag': 'SECURITY · BOT',
