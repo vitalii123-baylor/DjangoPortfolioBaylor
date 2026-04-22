@@ -1,156 +1,581 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block content %}
-<div style="max-width: 1200px; margin: 0 auto; padding: 100px 40px;">
-    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 80px; align-items: center;">
-        
-        <!-- Text Content -->
-        <div>
-            <div style="font-family: 'JetBrains Mono'; color: var(--n-purple); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.4em; margin-bottom: 24px;">[ ACCESS_GRANTED ]</div>
-            <h1 style="font-size: 4.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.04em; margin-bottom: 32px;">
-                Vitalii.<br>
-                <span style="background: linear-gradient(to right, #fff, var(--n-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Security Architect</span>
-            </h1>
-            <p style="font-size: 1.15rem; line-height: 1.8; color: rgba(255,255,255,0.6); margin-bottom: 48px; max-width: 500px;">
-                I build bulletproof digital systems and transform complex data streams into strategic security intelligence. Currently mastering MSIS at Baylor.
-            </p>
-            
-            <div style="display: flex; gap: 16px;">
-                <div class="info-card" style="padding: 24px; flex: 1;">
-                    <div style="font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--n-cyan); margin-bottom: 8px;">CORE_STACK</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        <span style="font-size: 0.85rem; font-weight: 600;">Python</span>
-                        <span style="color: rgba(255,255,255,0.2);">/</span>
-                        <span style="font-size: 0.85rem; font-weight: 600;">Django</span>
-                        <span style="color: rgba(255,255,255,0.2);">/</span>
-                        <span style="font-size: 0.85rem; font-weight: 600;">React</span>
-                    </div>
-                </div>
-                <div class="info-card" style="padding: 24px; flex: 1;">
-                    <div style="font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--n-purple); margin-bottom: 8px;">RESEARCH</div>
-                    <div style="font-size: 0.85rem; font-weight: 600;">Cyber Analytics</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Visual Avatar Section -->
-        <div style="position: relative;">
-            <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, var(--n-purple) 0%, transparent 70%); opacity: 0.15; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); filter: blur(40px);"></div>
-            <div id="ai-node" style="width: 280px; height: 280px; margin: 0 auto; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 50%; backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; position: relative; box-shadow: inset 0 0 30px rgba(167, 139, 250, 0.05);">
-                <div style="width: 120px; height: 120px; border: 2px solid var(--n-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: pulse 4s infinite ease-in-out;">
-                    <div style="width: 60px; height: 60px; background: var(--n-purple); border-radius: 50%; box-shadow: 0 0 30px var(--n-purple);"></div>
-                </div>
-                <!-- Floating Labels -->
-                <div style="position: absolute; top: 10%; right: -20px; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--n-cyan);" class="floating">SEC_V_1.0</div>
-                <div style="position: absolute; bottom: 20%; left: -30px; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--n-purple);" class="floating-delayed">ACTIVE_NODE</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- BOT WIDGET (Modern Minimalist) -->
-<div style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
-    <div id="bot-window" class="card">
-        <div style="padding: 20px; background: rgba(167, 139, 250, 0.05); border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; gap: 10px;">
-            <div style="width: 8px; height: 8px; background: var(--n-purple); border-radius: 50%; box-shadow: 0 0 10px var(--n-purple);"></div>
-            <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; font-weight: 700; color: var(--n-purple);">ASSISTANT.BOT</span>
-        </div>
-        <div id="bot-messages" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
-            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 14px; border-bottom-left-radius: 2px;">Hello. How can I assist with Vitalii's profile today?</div>
-        </div>
-        <div style="padding: 15px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px;">
-            <input type="text" id="bot-input" style="flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 0.85rem;" placeholder="Send command...">
-            <button onclick="sendBotMsg()" style="background: none; border: none; color: var(--n-purple); cursor: pointer; font-weight: 800;">></button>
-        </div>
-    </div>
-    
-    <div onclick="toggleBot()" class="bot-trigger">
-        <span style="font-size: 1.5rem; filter: brightness(0);">🤖</span>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
-    #bot-window {
-        position: absolute;
-        bottom: 80px;
-        right: 0;
-        width: 340px;
-        max-width: calc(100vw - 60px);
-        height: 480px;
-        max-height: calc(100vh - 150px);
-        display: none;
-        flex-direction: column;
+    /* SUN */
+    .retro-sun {
+        width: 220px; height: 110px;
+        border-radius: 110px 110px 0 0;
+        background: linear-gradient(to bottom, #ff8c00 0%, #ff2d78 55%, #b44fff 100%);
+        box-shadow: 0 0 60px rgba(255,140,0,0.5), 0 0 120px rgba(255,45,120,0.35);
+        position: relative;
         overflow: hidden;
-        border: 1px solid rgba(167, 139, 250, 0.2) !important;
+        margin: 0 auto;
     }
-    
-    .bot-trigger {
-        width: 60px; 
-        height: 60px; 
-        background: var(--n-purple); 
-        border-radius: 20px; 
-        cursor: pointer; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        box-shadow: 0 10px 30px rgba(167, 139, 250, 0.4); 
-        transition: all 0.3s ease;
+    .retro-sun::before {
+        content: '';
+        position: absolute;
+        left: 0; right: 0;
+        top: 0; bottom: 0;
+        background: repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 10px,
+            var(--bg) 10px,
+            var(--bg) 13px
+        );
+        mask-image: linear-gradient(to top, black 0%, transparent 60%);
+        -webkit-mask-image: linear-gradient(to top, black 0%, transparent 60%);
     }
 
-    @media (max-width: 500px) {
-        #bot-window {
-            right: -10px;
-            width: calc(100vw - 40px);
-        }
+    /* GRID FLOOR */
+    .grid-floor {
+        height: 80px;
+        background:
+            linear-gradient(rgba(0,229,255,0.18) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,229,255,0.18) 1px, transparent 1px);
+        background-size: 40px 40px;
+        -webkit-mask-image: linear-gradient(to bottom, transparent, black 60%);
+        mask-image: linear-gradient(to bottom, transparent, black 60%);
     }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 10px var(--n-purple); }
-        50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 30px var(--n-purple); }
+
+    /* SECTION LABEL */
+    .section-label {
+        font-family: 'Orbitron', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.35em;
+        color: var(--cyan);
+        text-shadow: 0 0 10px var(--cyan);
+        margin-bottom: 40px;
     }
-    .floating { animation: float 6s infinite ease-in-out; }
-    .floating-delayed { animation: float 8s infinite ease-in-out reverse; }
+
+    /* NEON TAG */
+    .tag {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        padding: 5px 12px;
+        border: 1px solid rgba(0,229,255,0.25);
+        border-radius: 6px;
+        color: rgba(255,255,255,0.55);
+    }
+
+    /* SKILL CARD */
+    .skill-card {
+        background: var(--glass);
+        border: 1px solid rgba(0,229,255,0.15);
+        border-radius: 14px;
+        padding: 24px 20px;
+        text-align: center;
+        transition: 0.3s;
+    }
+    .skill-card:hover {
+        border-color: var(--pink);
+        box-shadow: 0 0 20px var(--pink-glow);
+        transform: translateY(-4px);
+    }
+    .skill-icon { font-size: 2rem; margin-bottom: 12px; }
+    .skill-name {
+        font-family: 'Orbitron', monospace;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+    }
+    .skill-sub { font-size: 0.78rem; color: rgba(255,255,255,0.45); }
+
+    /* INFO CARD overrides */
+    .about-card {
+        background: var(--glass);
+        border: 1px solid rgba(180,79,255,0.2);
+        border-radius: 16px;
+        padding: 32px;
+        transition: 0.3s;
+    }
+    .about-card:hover {
+        border-color: var(--purple);
+        box-shadow: 0 0 24px var(--purple-glow);
+    }
+    .about-label {
+        font-family: 'Orbitron', monospace;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        margin-bottom: 20px;
+    }
+
+    @keyframes pulse-sun {
+        0%, 100% { box-shadow: 0 0 60px rgba(255,140,0,0.5), 0 0 120px rgba(255,45,120,0.35); }
+        50%       { box-shadow: 0 0 80px rgba(255,140,0,0.7), 0 0 160px rgba(255,45,120,0.5); }
+    }
+    .retro-sun { animation: pulse-sun 4s ease-in-out infinite; }
+
     @keyframes float {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-20px); }
+        50%       { transform: translateY(-12px); }
+    }
+    .floating         { animation: float 5s ease-in-out infinite; }
+    .floating-delayed { animation: float 7s ease-in-out infinite reverse; }
+
+    /* BOT */
+    #bot-window {
+        position: absolute; bottom: 80px; right: 0;
+        width: 360px; max-width: calc(100vw - 60px);
+        height: 480px; max-height: calc(100vh - 150px);
+        display: none; flex-direction: column; overflow: hidden;
+        background: rgba(7,2,15,0.95) !important;
+        border: 1px solid rgba(180,79,255,0.35) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 0 40px var(--purple-glow) !important;
+    }
+    .bot-trigger {
+        width: 60px; height: 60px;
+        background: linear-gradient(135deg, var(--purple), var(--pink));
+        border-radius: 16px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 0 24px var(--pink-glow), 0 0 48px var(--purple-glow);
+        transition: 0.3s; margin-left: auto;
+    }
+    .bot-trigger:hover { transform: scale(1.08); }
+
+    /* ── SCANLINES overlay ── */
+    body::after {
+        content: '';
+        position: fixed; inset: 0; z-index: 9999;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            to bottom,
+            transparent 0px, transparent 3px,
+            rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px
+        );
+    }
+
+    /* ── GLITCH on h1 ── */
+    @keyframes glitch {
+        0%,94%,100% { clip-path: none; transform: none; }
+        95% { clip-path: inset(30% 0 50% 0); transform: translate(-3px, 0); }
+        96% { clip-path: inset(60% 0 10% 0); transform: translate(3px, 0); }
+        97% { clip-path: inset(10% 0 70% 0); transform: translate(-2px, 0); }
+        98% { clip-path: none; transform: none; }
+    }
+    .glitch { animation: glitch 6s infinite; }
+
+    /* ── FLICKER on neon labels ── */
+    @keyframes flicker {
+        0%,19%,21%,23%,25%,54%,56%,100% { opacity: 1; }
+        20%,22%,24%,55% { opacity: 0.4; }
+    }
+    .flicker { animation: flicker 8s infinite; }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ── TYPEWRITER cursor ── */
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .cursor { display:inline-block; width:3px; height:1.1em; background:var(--cyan); margin-left:4px; vertical-align:middle; animation:blink 1s infinite; box-shadow:0 0 8px var(--cyan); }
+
+    /* ── PARTICLES ── */
+    .particle {
+        position: fixed;
+        width: 2px; height: 2px;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+        animation: drift linear infinite;
+        opacity: 0;
+    }
+    @keyframes drift {
+        0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+        10%  { opacity: 0.7; }
+        90%  { opacity: 0.5; }
+        100% { transform: translateY(-10vh) translateX(40px); opacity: 0; }
+    }
+
+    /* ── SKILL CARD neon border sweep ── */
+    .skill-card { position: relative; overflow: hidden; }
+    .skill-card::before {
+        content: '';
+        position: absolute; inset: 0;
+        border-radius: 14px;
+        background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+        opacity: 0;
+        transition: opacity 0.4s;
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        padding: 1px;
+    }
+    .skill-card:hover::before { opacity: 1; }
+
+    /* ── BOT smooth open/close ── */
+    #bot-window {
+        transform-origin: bottom right;
+        transform: scale(0.85) translateY(10px);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.25s cubic-bezier(0.2,1,0.3,1), opacity 0.25s ease;
+    }
+    #bot-window.open {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        pointer-events: all;
+        display: flex !important;
+    }
+
+    @media (max-width: 900px) {
+        .hero-grid { grid-template-columns: 1fr !important; }
+        .about-grid { grid-template-columns: 1fr !important; }
+        .skills-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    @media (max-width: 500px) {
+        #bot-window { right: -10px; width: calc(100vw - 40px); }
+        .skills-grid { grid-template-columns: 1fr !important; }
     }
 </style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════ HERO ═══════════ -->
+<div style="max-width: 1200px; margin: 0 auto; padding: 80px 40px 40px;">
+    <div class="hero-grid" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 80px; align-items: center;">
+
+        <div>
+            <div class="flicker" style="font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:0.45em; color:var(--pink); text-shadow:0 0 12px var(--pink); margin-bottom:28px;">
+                ▸ ACCESS_GRANTED
+            </div>
+
+            <h1 class="glitch" style="font-family:'Orbitron',monospace; font-size:3.8rem; font-weight:900; line-height:1.05; letter-spacing:-0.01em; margin-bottom:28px;">
+                VITALII<br>
+                <span style="background: linear-gradient(90deg, var(--cyan), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-shadow:none; filter:drop-shadow(0 0 16px var(--cyan-glow));">
+                    KANDABAROV
+                </span>
+            </h1>
+
+            <p style="font-size:1.15rem; font-weight:400; line-height:1.85; color:rgba(255,255,255,0.72); margin-bottom:20px; max-width:520px;">
+                <span id="typewriter" data-text="Security architect & full-stack developer. I build resilient digital systems and transform complex data into strategic intelligence."></span>
+            </p>
+            <p style="font-size:1rem; color:rgba(255,255,255,0.45); margin-bottom:44px;">
+                MSIS Cybersecurity @ Baylor University · Waco, TX
+            </p>
+
+            <div style="display:flex; gap:14px; flex-wrap:wrap;">
+                <a href="{% url 'projects' %}" class="btn-neon">View Projects</a>
+                <a href="/api/expenses/dashboard/" class="btn-pink">Launch App</a>
+            </div>
+        </div>
+
+        <!-- RETRO SUN VISUAL -->
+        <div style="display:flex; flex-direction:column; align-items:center; gap:0;">
+            <div style="position:relative; width:280px;">
+                <div class="retro-sun floating"></div>
+                <div class="grid-floor"></div>
+
+                <!-- floating labels -->
+                <div style="position:absolute; top:10px; right:-30px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--cyan); text-shadow:0 0 8px var(--cyan);" class="floating-delayed">SEC_V_2.0</div>
+                <div style="position:absolute; top:50px; left:-40px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--pink); text-shadow:0 0 8px var(--pink);" class="floating">ACTIVE_NODE</div>
+                <div style="position:absolute; bottom:20px; right:-20px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--purple); text-shadow:0 0 8px var(--purple);" class="floating-delayed">BAYLOR_26</div>
+            </div>
+
+            <!-- quick stats row -->
+            <div style="display:flex; gap:12px; margin-top:28px; flex-wrap:wrap; justify-content:center;">
+                <div style="text-align:center; padding:14px 20px; background:var(--glass); border:1px solid rgba(0,229,255,0.15); border-radius:12px;">
+                    <div style="font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; color:var(--cyan); text-shadow:0 0 14px var(--cyan);">MSIS</div>
+                    <div style="font-size:0.72rem; color:rgba(255,255,255,0.45); margin-top:4px;">Cybersecurity</div>
+                </div>
+                <div style="text-align:center; padding:14px 20px; background:var(--glass); border:1px solid rgba(255,45,120,0.15); border-radius:12px;">
+                    <div style="font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; color:var(--pink); text-shadow:0 0 14px var(--pink);">AI</div>
+                    <div style="font-size:0.72rem; color:rgba(255,255,255,0.45); margin-top:4px;">Integration</div>
+                </div>
+                <div style="text-align:center; padding:14px 20px; background:var(--glass); border:1px solid rgba(180,79,255,0.15); border-radius:12px;">
+                    <div style="font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; color:var(--purple); text-shadow:0 0 14px var(--purple);">TX</div>
+                    <div style="font-size:0.72rem; color:rgba(255,255,255,0.45); margin-top:4px;">Waco</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══════════ ABOUT ═══════════ -->
+<div class="reveal" style="max-width:1200px; margin:0 auto; padding:60px 40px;">
+    <div class="section-label">// ABOUT_ME</div>
+
+    <div class="about-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+        <!-- Education -->
+        <div class="about-card">
+            <div class="about-label" style="color:var(--cyan); text-shadow:0 0 10px var(--cyan);">EDUCATION</div>
+            <div>
+                <div style="font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; margin-bottom:6px;">Baylor University</div>
+                <div style="font-size:0.95rem; color:var(--purple); font-weight:600; margin-bottom:4px;">MSIS — Cybersecurity</div>
+                <div style="font-size:0.85rem; color:rgba(255,255,255,0.45);">Expected August 2026 · Waco, TX</div>
+            </div>
+        </div>
+
+        <!-- Background -->
+        <div class="about-card">
+            <div class="about-label" style="color:var(--pink); text-shadow:0 0 10px var(--pink);">BACKGROUND</div>
+            <div style="display:flex; flex-direction:column; gap:13px; font-size:0.95rem; color:rgba(255,255,255,0.75); line-height:1.6;">
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                    <span style="color:var(--cyan); flex-shrink:0; margin-top:2px;">▸</span>
+                    <span>Music school graduate — Bayan (button accordion)</span>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                    <span style="color:var(--cyan); flex-shrink:0; margin-top:2px;">▸</span>
+                    <span>Member of the Local Churches (Watchman Nee / Witness Lee)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="about-card" style="border-color:rgba(0,229,255,0.2);">
+            <div class="about-label" style="color:var(--cyan); text-shadow:0 0 10px var(--cyan);">EXPERIENCE</div>
+            <div>
+                <div style="font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; margin-bottom:6px;">Outlier AI</div>
+                <div style="font-size:0.95rem; color:#4ade80; font-weight:600; margin-bottom:4px;">Coding Contractor</div>
+                <div style="font-size:0.85rem; color:rgba(255,255,255,0.45);">AI training & code evaluation</div>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="about-card">
+            <div class="about-label" style="color:var(--purple); text-shadow:0 0 10px var(--purple);">LOCATION</div>
+            <div style="font-size:0.95rem; color:rgba(255,255,255,0.75); line-height:1.8;">
+                <div style="font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:8px;">Waco, Texas</div>
+                <div style="font-size:0.85rem; color:rgba(255,255,255,0.45);">United States · Open to remote</div>
+            </div>
+        </div>
+
+        <!-- Debug mindset -->
+        <div class="about-card" style="border-color:rgba(255,45,120,0.2); grid-column: span 2;">
+            <div class="about-label" style="color:var(--pink); text-shadow:0 0 10px var(--pink);">MINDSET & INTERESTS</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+                <div>
+                    <div style="font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:12px;">🔍 Bug Detective</div>
+                    <p style="font-size:0.95rem; color:rgba(255,255,255,0.7); line-height:1.75;">
+                        I love hunting bugs — not just fixing them, but investigating their root cause like a detective. Finding the bug is only half the thrill; the real satisfaction is fully understanding <em style="color:var(--cyan);">why</em> it happened and unraveling the logic behind it.
+                    </p>
+                </div>
+                <div>
+                    <div style="font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:12px;">📚 Currently Into</div>
+                    <div style="display:flex; flex-direction:column; gap:10px; font-size:0.95rem; color:rgba(255,255,255,0.7); line-height:1.6;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:1.1rem;">📖</span>
+                            <span><span style="color:#fff; font-weight:600;">The Girl with the Dragon Tattoo</span> — Stieg Larsson</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:1.1rem;">🎭</span>
+                            <span><span style="color:#fff; font-weight:600;">Lupin</span> — French mystery thriller</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:1.1rem;">⚔️</span>
+                            <span><span style="color:#fff; font-weight:600;">Kingdom</span> — anime epic warfare</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:1.1rem;">👑</span>
+                            <span><span style="color:#fff; font-weight:600;">Overlord</span> — anime dark fantasy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══════════ TECH STACK ═══════════ -->
+<div class="reveal" style="max-width:1200px; margin:0 auto; padding:0 40px 80px;">
+    <div class="section-label">// TECH_STACK</div>
+
+    <div class="skills-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+
+        <div class="skill-card">
+            <div class="skill-icon">🐍</div>
+            <div class="skill-name">Python</div>
+            <div class="skill-sub">Primary language</div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-icon">⚡</div>
+            <div class="skill-name">Django</div>
+            <div class="skill-sub">Web framework</div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-icon">⚛️</div>
+            <div class="skill-name">React / JS</div>
+            <div class="skill-sub">Frontend</div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-icon">🌙</div>
+            <div class="skill-name">Lua</div>
+            <div class="skill-sub">Solar2D / scripting</div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-icon">📊</div>
+            <div class="skill-name">Tableau</div>
+            <div class="skill-sub">Familiar · coursework</div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-icon">🤖</div>
+            <div class="skill-name">AI APIs</div>
+            <div class="skill-sub">Gemini · OpenAI</div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-icon">🔐</div>
+            <div class="skill-name">Cybersecurity</div>
+            <div class="skill-sub">Specialization</div>
+        </div>
+
+        <div class="skill-card">
+            <div class="skill-icon">🗄️</div>
+            <div class="skill-name">REST APIs</div>
+            <div class="skill-sub">DRF · integration</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══════════ BOT WIDGET ═══════════ -->
+<div class="bot-wrapper" style="position:fixed; bottom:30px; right:30px; z-index:1000;">
+    <div id="bot-window">
+        <div style="padding:18px 20px; border-bottom:1px solid rgba(180,79,255,0.25); display:flex; align-items:center; gap:10px;">
+            <div style="width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 10px var(--purple);"></div>
+            <span style="font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700; color:var(--purple); letter-spacing:0.1em; flex:1;">ASSISTANT.BOT</span>
+            <button onclick="closeBot()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:1.1rem;line-height:1;padding:4px;transition:0.2s;" onmouseover="this.style.color='var(--pink)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">✕</button>
+        </div>
+        <div id="bot-messages" style="flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;font-size:0.9rem; line-height:1.6;">
+            <div style="background:rgba(180,79,255,0.08);padding:14px;border-radius:12px;border-bottom-left-radius:2px;color:rgba(255,255,255,0.85);">Hello. How can I assist with Vitalii's profile today?</div>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid rgba(180,79,255,0.2);display:flex;gap:10px;align-items:center;">
+            <input type="text" id="bot-input" style="flex:1;background:transparent;border:none;color:#fff;outline:none;font-size:0.9rem;font-family:'Exo 2',sans-serif;" placeholder="Send command...">
+            <button onclick="sendBotMsg()" style="background:none;border:none;color:var(--purple);cursor:pointer;font-size:1.2rem;line-height:1;">▶</button>
+        </div>
+    </div>
+
+    <div onclick="toggleBot()" class="bot-trigger">
+        <span style="font-size:1.5rem;">🤖</span>
+    </div>
+</div>
 
 <script>
+    /* ── BOT ── */
+    const botWin = document.getElementById('bot-window');
+    const botInput = document.getElementById('bot-input');
+
+    function openBot() {
+        botWin.style.display = 'flex';
+        requestAnimationFrame(() => botWin.classList.add('open'));
+        setTimeout(() => botInput.focus(), 250);
+    }
+    function closeBot() {
+        botWin.classList.remove('open');
+        setTimeout(() => { botWin.style.display = 'none'; }, 250);
+    }
     function toggleBot() {
-        const win = document.getElementById('bot-window');
-        win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+        botWin.classList.contains('open') ? closeBot() : openBot();
     }
 
+    // close on click outside
+    document.addEventListener('mousedown', function(e) {
+        const wrapper = document.querySelector('.bot-wrapper');
+        if (botWin.classList.contains('open') && !wrapper.contains(e.target)) closeBot();
+    });
+
+    // Enter sends
+    botInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBotMsg(); }
+    });
+
     async function sendBotMsg() {
-        const input = document.getElementById('bot-input');
-        const text = input.value.trim();
-        if(!text) return;
+        const text = botInput.value.trim();
+        if (!text) return;
 
         const container = document.getElementById('bot-messages');
+
         const userMsg = document.createElement('div');
-        userMsg.style = "background: var(--n-purple); color: #000; font-weight: 700; padding: 12px; border-radius: 14px; border-bottom-right-radius: 2px; align-self: flex-end;";
+        userMsg.style.cssText = "background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-weight:600;padding:12px 14px;border-radius:12px;border-bottom-right-radius:2px;align-self:flex-end;max-width:82%;word-break:break-word;";
         userMsg.textContent = text;
         container.appendChild(userMsg);
-        input.value = '';
+        botInput.value = '';
 
         const thinking = document.createElement('div');
-        thinking.style = "background: rgba(255,255,255,0.03); padding: 12px; border-radius: 14px; align-self: flex-start;";
-        thinking.textContent = "...";
+        thinking.style.cssText = "background:rgba(180,79,255,0.08);padding:14px;border-radius:12px;border-bottom-left-radius:2px;color:rgba(255,255,255,0.5);font-style:italic;";
+        thinking.textContent = "thinking...";
         container.appendChild(thinking);
         container.scrollTop = container.scrollHeight;
 
         try {
             const res = await fetch('/api/chat/ask/', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
                 body: JSON.stringify({ message: text })
             });
             const data = await res.json();
             thinking.textContent = data.answer;
-        } catch(e) { thinking.textContent = "API Error."; }
+            thinking.style.color = 'rgba(255,255,255,0.85)';
+            thinking.style.fontStyle = 'normal';
+        } catch(e) {
+            thinking.textContent = "Connection error. Try again.";
+            thinking.style.color = 'var(--pink)';
+        }
         container.scrollTop = container.scrollHeight;
+    }
+
+    /* ── SCROLL REVEAL ── */
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 120);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    /* ── PARTICLES ── */
+    const colors = ['#00e5ff','#ff2d78','#b44fff','#ff8c00'];
+    for (let i = 0; i < 28; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.cssText = `
+            left: ${Math.random()*100}vw;
+            background: ${colors[Math.floor(Math.random()*colors.length)]};
+            box-shadow: 0 0 6px currentColor;
+            animation-duration: ${8 + Math.random()*14}s;
+            animation-delay: ${Math.random()*10}s;
+            width: ${Math.random() > 0.6 ? '3px' : '2px'};
+            height: ${Math.random() > 0.6 ? '3px' : '2px'};
+        `;
+        document.body.appendChild(p);
+    }
+
+    /* ── TYPEWRITER on subtitle ── */
+    const target = document.getElementById('typewriter');
+    if (target) {
+        const full = target.dataset.text;
+        target.textContent = '';
+        let idx = 0;
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor';
+        target.parentNode.insertBefore(cursor, target.nextSibling);
+        const timer = setInterval(() => {
+            target.textContent += full[idx++];
+            if (idx >= full.length) clearInterval(timer);
+        }, 38);
     }
 </script>
 {% endblock %}

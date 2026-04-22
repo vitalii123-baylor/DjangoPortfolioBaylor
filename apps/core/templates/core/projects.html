@@ -1,62 +1,102 @@
 {% extends 'base.html' %}
-{% block title %}Projects Hub | Vitalii 2026{% endblock %}
+{% block title %}Projects · VITALII.SYS{% endblock %}
 
 {% block extra_css %}
 <style>
     .projects-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 24px;
         padding: 40px 0;
     }
     .project-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 24px;
-        padding: 32px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--glass);
+        border: 1px solid rgba(0,229,255,0.15);
+        border-radius: 18px;
+        padding: 36px;
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 14px;
+        transition: 0.35s cubic-bezier(0.2,1,0.3,1);
     }
     .project-card:hover {
-        transform: translateY(-10px);
-        background: rgba(167, 139, 250, 0.05);
-        border-color: rgba(167, 139, 250, 0.3);
+        transform: translateY(-8px);
+        border-color: var(--cyan);
+        box-shadow: 0 0 30px var(--cyan-glow), inset 0 0 20px rgba(0,229,255,0.03);
     }
-    .proj-icon { font-size: 2.5rem; margin-bottom: 10px; }
-    .proj-title { font-size: 1.4rem; font-weight: 800; color: #fff; }
-    .proj-desc { color: rgba(255,255,255,0.6); line-height: 1.6; font-size: 0.95rem; flex: 1; }
+    .proj-icon { font-size: 2.4rem; }
+    .proj-title {
+        font-family: 'Orbitron', monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.02em;
+    }
+    .proj-desc {
+        color: rgba(255,255,255,0.62);
+        line-height: 1.7;
+        font-size: 0.95rem;
+        flex: 1;
+    }
     .proj-tech { display: flex; flex-wrap: wrap; gap: 8px; }
     .tech-pill {
-        font-size: 0.75rem;
-        background: rgba(255,255,255,0.05);
-        padding: 4px 10px;
-        border-radius: 8px;
-        color: rgba(255,255,255,0.8);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.7rem;
+        padding: 5px 12px;
+        border: 1px solid rgba(180,79,255,0.3);
+        border-radius: 7px;
+        color: var(--purple);
     }
     .btn-visit {
-        margin-top: 10px;
-        padding: 12px;
-        background: #fff;
-        color: #000;
+        margin-top: 8px;
+        padding: 13px;
+        background: transparent;
+        border: 1px solid var(--cyan);
+        color: var(--cyan);
         text-align: center;
         text-decoration: none;
-        border-radius: 14px;
+        border-radius: 12px;
+        font-family: 'Orbitron', monospace;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        transition: 0.3s;
+        box-shadow: 0 0 10px var(--cyan-glow);
+    }
+    .btn-visit:hover {
+        background: rgba(0,229,255,0.1);
+        box-shadow: 0 0 24px var(--cyan), 0 0 48px var(--cyan-glow);
+        color: #fff;
+    }
+
+    /* reveal */
+    .reveal { opacity:0; transform:translateY(28px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    @keyframes flicker {
+        0%,19%,21%,23%,25%,54%,56%,100% { opacity:1; }
+        20%,22%,24%,55% { opacity:0.4; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1100px; margin: 0 auto; padding: 60px 24px;">
-    <h1 style="font-size: 3rem; font-weight: 800; background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Projects Hub</h1>
-    <p style="color: rgba(255,255,255,0.5); font-size: 1.1rem; margin-top: 10px;">A collection of my recent developments in AI, Finance, and Security.</p>
+<div style="max-width:1100px; margin:0 auto; padding:70px 28px;">
+
+    <div style="font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:0.45em; color:var(--pink); text-shadow:0 0 12px var(--pink); margin-bottom:20px; animation:flicker 8s infinite;">
+        ▸ PROJECTS_MODULE
+    </div>
+
+    <h1 style="font-family:'Orbitron',monospace; font-size:3rem; font-weight:900; margin-bottom:14px;">
+        <span style="background:linear-gradient(90deg, var(--cyan), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 12px var(--cyan-glow));">
+            PROJECT HUB
+        </span>
+    </h1>
+    <p style="color:rgba(255,255,255,0.5); font-size:1rem; margin-bottom:8px;">A collection of developments in AI, Finance, and Security.</p>
 
     <div class="projects-grid">
         {% for proj in projects %}
-        <div class="project-card">
+        <div class="project-card reveal">
             <div class="proj-icon">{{ proj.icon }}</div>
             <div class="proj-title">{{ proj.title }}</div>
             <div class="proj-desc">{{ proj.desc }}</div>
@@ -70,4 +110,16 @@
         {% endfor %}
     </div>
 </div>
+
+<script>
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 100);
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
 {% endblock %}

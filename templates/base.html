@@ -3,92 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}VITALII.SYS | Security & Dev{% endblock %}</title>
+    <title>{% block title %}VITALII · Security & Dev{% endblock %}</title>
     {% load static %}
-    
+
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/9374/9374944.png">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --bg: #05060b;
-            --n-purple: #a78bfa;
-            --n-blue: #60a5fa;
-            --n-cyan: #22d3ee;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg:        #07020f;
+            --bg2:       #0d0520;
+            --pink:      #ff2d78;
+            --pink-glow: rgba(255, 45, 120, 0.55);
+            --cyan:      #00e5ff;
+            --cyan-glow: rgba(0, 229, 255, 0.45);
+            --purple:    #b44fff;
+            --purple-glow: rgba(180, 79, 255, 0.5);
+            --orange:    #ff8c00;
+            --glass:     rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            /* legacy aliases for older pages */
+            --n-purple:  #b44fff;
+            --n-blue:    #00e5ff;
+            --n-cyan:    #00e5ff;
             --glass-bright: rgba(255, 255, 255, 0.07);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             background-color: var(--bg);
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(96, 165, 250, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 100% 0%, rgba(167, 139, 250, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.05) 0%, transparent 50%);
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-image:
+                /* horizon glow */
+                radial-gradient(ellipse 120% 40% at 50% 100%, rgba(255,45,120,0.18) 0%, transparent 60%),
+                /* top purple */
+                radial-gradient(ellipse 80% 50% at 50% 0%, rgba(180,79,255,0.15) 0%, transparent 55%),
+                /* perspective grid */
+                linear-gradient(rgba(0,229,255,0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.07) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
+            font-family: 'Exo 2', sans-serif;
             color: #fff;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
+        /* NAVBAR */
         .navbar {
-            background: rgba(5, 6, 11, 0.8);
-            backdrop-filter: blur(20px);
-            padding: 20px 60px;
+            background: rgba(7, 2, 15, 0.85);
+            backdrop-filter: blur(24px);
+            padding: 18px 60px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid rgba(0,229,255,0.2);
+            box-shadow: 0 2px 30px rgba(0,229,255,0.08);
         }
 
         .nav-brand {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-            font-size: 1.3rem;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.25rem;
             text-decoration: none;
             color: #fff;
-            letter-spacing: -1px;
+            letter-spacing: 0.05em;
         }
-        .nav-brand span { color: var(--n-cyan); text-shadow: 0 0 15px var(--n-cyan); }
+        .nav-brand span {
+            color: var(--cyan);
+            text-shadow: 0 0 12px var(--cyan), 0 0 30px var(--cyan-glow);
+        }
 
         .nav-links { display: flex; gap: 32px; align-items: center; }
         .nav-links a {
             color: rgba(255,255,255,0.6);
             text-decoration: none;
-            font-size: 0.8rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.72rem;
             font-weight: 700;
-            text-transform: uppercase;
             letter-spacing: 0.15em;
             transition: 0.3s;
         }
-        .nav-links a:hover { color: #fff; text-shadow: 0 0 10px #fff; }
+        .nav-links a:hover {
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan);
+        }
 
-        /* Global Cyber Scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; transition: 0.3s; }
-        *:hover::-webkit-scrollbar-thumb { background: var(--n-purple); box-shadow: 0 0 10px var(--n-purple); }
-        
-        .card, .bento-card, .info-card, .project-card {
-            background: var(--glass) !important;
-            border: 1px solid var(--glass-border) !important;
-            backdrop-filter: blur(30px) !important;
-            border-radius: 24px !important;
-            transition: 0.4s cubic-bezier(0.2, 1, 0.3, 1) !important;
-        }
-        .card:hover { border-color: var(--n-cyan) !important; transform: translateY(-4px); }
+        ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 10px; box-shadow: 0 0 8px var(--purple-glow); }
 
-        .btn-action {
-            background: #fff; color: #000; border: none; padding: 12px 24px;
-            border-radius: 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer;
-            transition: 0.3s;
+        /* CARDS */
+        .card, .info-card, .bento-card, .project-card {
+            background: var(--glass) !important;
+            border: 1px solid rgba(0,229,255,0.15) !important;
+            backdrop-filter: blur(20px) !important;
+            border-radius: 16px !important;
+            transition: 0.35s cubic-bezier(0.2,1,0.3,1) !important;
         }
-        .btn-action:hover { box-shadow: 0 0 20px #fff; transform: translateY(-2px); }
+        .card:hover, .info-card:hover {
+            border-color: var(--cyan) !important;
+            box-shadow: 0 0 24px var(--cyan-glow), inset 0 0 20px rgba(0,229,255,0.04) !important;
+            transform: translateY(-4px);
+        }
+
+        /* NEON BUTTON */
+        .btn-neon {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--cyan);
+            background: transparent;
+            border: 1px solid var(--cyan);
+            padding: 12px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.3s;
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+        .btn-neon:hover {
+            background: rgba(0,229,255,0.1);
+            box-shadow: 0 0 24px var(--cyan), 0 0 48px var(--cyan-glow);
+            color: #fff;
+        }
+
+        .btn-pink {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--pink);
+            background: transparent;
+            border: 1px solid var(--pink);
+            padding: 12px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.3s;
+            box-shadow: 0 0 10px var(--pink-glow);
+        }
+        .btn-pink:hover {
+            background: rgba(255,45,120,0.1);
+            box-shadow: 0 0 24px var(--pink), 0 0 48px var(--pink-glow);
+            color: #fff;
+        }
+
+        /* LABEL */
+        .label {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>

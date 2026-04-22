@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.conf import settings
@@ -59,5 +59,3 @@ RESPONSE:"""
         # Общий fallback
         return JsonResponse({'answer': "System running in legacy mode. Vitalii is a MSIS student at Baylor specializing in Cyber Security and Software Development. 🤖"})
 
-def signup(request):
-    return redirect('home')

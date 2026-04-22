@@ -5,5 +5,4 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('projects/', views.projects, name='projects'),
     path('api/chat/ask/', views.chat_ask, name='chat_ask'),
-    path('auth/signup/', views.signup, name='signup'),
 ]
