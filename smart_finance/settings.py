@@ -80,10 +80,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Claude API key — set via environment variable ANTHROPIC_API_KEY
+# API Keys — recommended to set via environment variables on Railway
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyB35Jog4pEYINuMKoOKF8tn1Z3mLJ-sWPM')
-NEWS_API_KEY = '082553f8-0e1c-4d9e-b559-7d18b39b6290'
+NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '082553f8-0e1c-4d9e-b559-7d18b39b6290')
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
