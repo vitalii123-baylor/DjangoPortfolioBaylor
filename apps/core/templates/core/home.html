@@ -212,6 +212,12 @@
         0%, 100% { transform: translateY(0); }
         50%       { transform: translateY(-12px); }
     }
+    @keyframes hero-fade {
+        from { opacity:0; transform:translateY(10px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .cursor { display:inline-block; width:2px; height:1em; background:var(--cyan); margin-left:3px; vertical-align:middle; animation:blink 1s infinite; box-shadow:0 0 8px var(--cyan); }
     .floating         { animation: float 5s ease-in-out infinite; }
     .floating-delayed { animation: float 7s ease-in-out infinite reverse; }
 
@@ -264,9 +270,6 @@
         transform: translateY(0);
     }
 
-    /* ── TYPEWRITER cursor ── */
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-    .cursor { display:inline-block; width:3px; height:1.1em; background:var(--cyan); margin-left:4px; vertical-align:middle; animation:blink 1s infinite; box-shadow:0 0 8px var(--cyan); }
 
 
     /* ── SKILL CARD neon border sweep ── */
@@ -329,8 +332,8 @@
                 </span>
             </h1>
 
-            <p style="font-size:1.15rem; font-weight:400; line-height:1.85; color:rgba(255,255,255,0.72); margin-bottom:20px; max-width:520px;">
-                <span id="typewriter" data-text="Security architect & full-stack developer. I build resilient digital systems and transform complex data into strategic intelligence."></span>
+            <p style="font-size:1.15rem; font-weight:400; line-height:1.85; color:rgba(255,255,255,0.72); margin-bottom:20px; max-width:520px; min-height:6.5rem;">
+                <span id="typewriter" data-text="Security architect & full-stack developer. I build resilient digital systems and transform complex data into strategic intelligence."></span><span class="cursor"></span>
             </p>
             <p style="font-size:1rem; color:rgba(255,255,255,0.45); margin-bottom:44px;">
                 MSIS Cybersecurity @ Baylor University · Waco, TX
@@ -607,6 +610,18 @@
         if (botWin.classList.contains('open') && !wrapper.contains(e.target)) closeBot();
     });
 
+    /* ── TYPEWRITER ── */
+    const twTarget = document.getElementById('typewriter');
+    if (twTarget) {
+        const full = twTarget.dataset.text;
+        twTarget.textContent = '';
+        let idx = 0;
+        const timer = setInterval(() => {
+            twTarget.textContent += full[idx++];
+            if (idx >= full.length) clearInterval(timer);
+        }, 36);
+    }
+
     // Enter sends
     botInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendBotMsg(); }
@@ -659,19 +674,5 @@
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 
-    /* ── TYPEWRITER on subtitle ── */
-    const target = document.getElementById('typewriter');
-    if (target) {
-        const full = target.dataset.text;
-        target.textContent = '';
-        let idx = 0;
-        const cursor = document.createElement('span');
-        cursor.className = 'cursor';
-        target.parentNode.insertBefore(cursor, target.nextSibling);
-        const timer = setInterval(() => {
-            target.textContent += full[idx++];
-            if (idx >= full.length) clearInterval(timer);
-        }, 38);
-    }
 </script>
 {% endblock %}
