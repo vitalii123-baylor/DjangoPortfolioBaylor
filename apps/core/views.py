@@ -48,7 +48,7 @@ USER QUERY: "{user_msg}"
 RESPONSE:"""
 
         client = _get_client()
-        response = client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
+        response = client.models.generate_content(model='gemini-2.5-flash-lite', contents=prompt)
         return JsonResponse({'answer': response.text.strip()})
     except Exception as e:
         error_msg = str(e)

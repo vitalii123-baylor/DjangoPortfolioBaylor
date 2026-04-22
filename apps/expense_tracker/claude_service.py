@@ -27,7 +27,7 @@ ONLY JSON, nothing else."""
     try:
         client = _get_client()
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-2.5-flash-lite',
             contents=prompt
         )
         raw = response.text.strip()
@@ -58,7 +58,7 @@ Use a friendly tone and emojis. Start with "I noticed..."."""
     try:
         client = _get_client()
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-2.5-flash-lite',
             contents=prompt
         )
         return response.text.strip()
