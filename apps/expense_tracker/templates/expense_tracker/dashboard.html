@@ -121,6 +121,21 @@
     .del-btn:hover { color: var(--pink); text-shadow: 0 0 8px var(--pink); }
 
     .stat-text { font-size: 0.88rem; font-family: 'Exo 2', sans-serif; color: rgba(255,255,255,0.55); }
+
+    /* Category card — compact */
+    .cat-row { padding: 8px 0 !important; gap: 10px !important; }
+    .cat-icon {
+        font-size: 1rem;
+        width: 32px; height: 32px;
+        background: rgba(0,229,255,0.04);
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 9px;
+        border: 1px solid rgba(0,229,255,0.1);
+        flex-shrink: 0;
+    }
+    .cat-name { font-size: 0.85rem !important; }
+    .cat-pct  { font-size: 0.75rem !important; }
+    .cat-row .item-sub { font-size: 0.72rem; margin-top: 1px; }
 </style>
 {% endblock %}
 
@@ -188,15 +203,15 @@
         <!-- Categories -->
         <div class="bento-card span-4">
             <span class="card-label">Category_Distribution</span>
-            <div id="ui-categories" style="max-height: 400px; overflow-y: auto;">
+            <div id="ui-categories">
                 {% for cat in categories %}
-                <div class="item-row">
-                    <div style="font-size: 1.2rem; width: 42px; height: 42px; background: rgba(0,229,255,0.04); display: flex; align-items: center; justify-content: center; border-radius: 12px; border:1px solid rgba(0,229,255,0.1); flex-shrink:0;">{{ cat.icon }}</div>
+                <div class="item-row cat-row">
+                    <div class="cat-icon">{{ cat.icon }}</div>
                     <div class="item-text-wrap">
-                        <div class="item-label" title="{{ cat.name }}">{{ cat.name }}</div>
-                        <div class="item-sub">${{ cat.spent|floatformat:0 }} spent</div>
+                        <div class="item-label cat-name" title="{{ cat.name }}">{{ cat.name }}</div>
+                        <div class="item-sub">${{ cat.spent|floatformat:0 }}</div>
                     </div>
-                    <div class="item-pct">{{ cat.percentage }}%</div>
+                    <div class="item-pct cat-pct">{{ cat.percentage }}%</div>
                 </div>
                 {% endfor %}
             </div>
@@ -257,13 +272,13 @@ function updateUI(data) {
     // Categories
     const catBox = document.getElementById('ui-categories');
     catBox.innerHTML = data.categories.map(c => `
-        <div class="item-row">
-            <div style="font-size:1.2rem;width:42px;height:42px;background:rgba(0,229,255,0.04);display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid rgba(0,229,255,0.1);flex-shrink:0;">${c.icon}</div>
+        <div class="item-row cat-row">
+            <div class="cat-icon">${c.icon}</div>
             <div class="item-text-wrap">
-                <div class="item-label" title="${c.name}">${c.name}</div>
-                <div class="item-sub">$${Math.round(c.spent)} spent</div>
+                <div class="item-label cat-name" title="${c.name}">${c.name}</div>
+                <div class="item-sub">$${Math.round(c.spent)}</div>
             </div>
-            <div class="item-pct">${c.percentage}%</div>
+            <div class="item-pct cat-pct">${c.percentage}%</div>
         </div>
     `).join('');
 

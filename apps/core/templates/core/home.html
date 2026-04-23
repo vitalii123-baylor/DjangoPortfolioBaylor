@@ -242,7 +242,7 @@
         border-radius: 16px; cursor: pointer;
         display: flex; align-items: center; justify-content: center;
         box-shadow: 0 0 24px var(--pink-glow), 0 0 48px var(--purple-glow);
-        transition: 0.3s; margin-left: auto;
+        transition: 0.3s;
     }
     .bot-trigger:hover { transform: scale(1.08); }
 
@@ -310,10 +310,25 @@
         .hero-grid { grid-template-columns: 1fr !important; }
         .about-grid { grid-template-columns: 1fr !important; }
         .skills-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        .contact-grid { grid-template-columns: 1fr !important; }
+        .mindset-card { grid-column: span 1 !important; }
+        .mindset-inner { grid-template-columns: 1fr !important; }
+    }
+    @media (max-width: 768px) {
+        .hero-section  { padding: 40px 20px 20px !important; }
+        .about-section { padding: 40px 20px !important; }
+        .skills-section { padding: 0 20px 40px !important; }
+        .contact-section { padding: 0 20px 60px !important; }
+        .hero-grid { gap: 40px !important; }
+        .glitch { font-size: 2.4rem !important; }
+        .section-label { margin-bottom: 24px; }
+        .sun-label { display: none; }
+        .about-card { padding: 22px !important; }
     }
     @media (max-width: 500px) {
         #bot-window { right: -10px; width: calc(100vw - 40px); }
         .skills-grid { grid-template-columns: 1fr !important; }
+        .glitch { font-size: 1.9rem !important; }
     }
 </style>
 {% endblock %}
@@ -321,7 +336,7 @@
 {% block content %}
 
 <!-- ═══════════ HERO ═══════════ -->
-<div style="max-width: 1200px; margin: 0 auto; padding: 80px 40px 40px;">
+<div class="hero-section" style="max-width: 1200px; margin: 0 auto; padding: 80px 40px 40px;">
     <div class="hero-grid" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 80px; align-items: center;">
 
         <div>
@@ -354,14 +369,14 @@
 
             <!-- Avatar -->
             <div style="position:relative; margin-bottom:24px;">
-                <div style="width:110px; height:110px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--pink)); display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:2rem; font-weight:900; color:#fff; box-shadow:0 0 30px var(--pink-glow), 0 0 60px var(--purple-glow); position:relative; z-index:1;">
-                    VK
+                <div style="width:110px; height:110px; border-radius:50%; background:linear-gradient(135deg,var(--purple),var(--pink)); overflow:hidden; box-shadow:0 0 30px var(--pink-glow), 0 0 60px var(--purple-glow); position:relative; z-index:10000;">
+                    <img src="{% static 'photo.jpg' %}" alt="Vitalii Kandabarov" style="width:100%; height:100%; object-fit:cover; display:block;">
                 </div>
                 <!-- rotating ring -->
                 <div style="position:absolute; inset:-6px; border-radius:50%; border:2px solid transparent; border-top-color:var(--cyan); border-right-color:var(--purple); animation:spin 4s linear infinite;"></div>
                 <div style="position:absolute; inset:-12px; border-radius:50%; border:1px solid transparent; border-bottom-color:var(--pink); border-left-color:rgba(0,229,255,0.3); animation:spin 8s linear infinite reverse;"></div>
                 <!-- status dot -->
-                <div style="position:absolute; bottom:6px; right:6px; width:14px; height:14px; background:#4ade80; border-radius:50%; border:2px solid var(--bg); box-shadow:0 0 8px #4ade80; z-index:2;"></div>
+                <div style="position:absolute; bottom:6px; right:6px; width:14px; height:14px; background:#4ade80; border-radius:50%; border:2px solid var(--bg); box-shadow:0 0 8px #4ade80; z-index:10001;"></div>
             </div>
 
             <div class="sun-scene">
@@ -376,9 +391,9 @@
                 <div class="grid-floor"></div>
 
                 <!-- floating labels -->
-                <div style="position:absolute; top:10px; right:-30px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--cyan); text-shadow:0 0 8px var(--cyan);" class="floating-delayed">SEC_V_2.0</div>
-                <div style="position:absolute; top:50px; left:-40px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--pink); text-shadow:0 0 8px var(--pink);" class="floating">ACTIVE_NODE</div>
-                <div style="position:absolute; bottom:20px; right:-20px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--purple); text-shadow:0 0 8px var(--purple);" class="floating-delayed">BAYLOR_26</div>
+                <div class="sun-label floating-delayed" style="position:absolute; top:10px; right:-30px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--cyan); text-shadow:0 0 8px var(--cyan);">SEC_V_2.0</div>
+                <div class="sun-label floating" style="position:absolute; top:50px; left:-40px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--pink); text-shadow:0 0 8px var(--pink);">ACTIVE_NODE</div>
+                <div class="sun-label floating-delayed" style="position:absolute; bottom:20px; right:-20px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--purple); text-shadow:0 0 8px var(--purple);">BAYLOR_26</div>
             </div>
 
             <!-- quick stats row -->
@@ -402,7 +417,7 @@
 </div>
 
 <!-- ═══════════ ABOUT ═══════════ -->
-<div class="reveal" style="max-width:1200px; margin:0 auto; padding:60px 40px;">
+<div class="reveal about-section" style="max-width:1200px; margin:0 auto; padding:60px 40px;">
     <div class="section-label">// ABOUT_ME</div>
 
     <div class="about-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
@@ -488,9 +503,9 @@
         </div>
 
         <!-- Debug mindset -->
-        <div class="about-card" style="border-color:rgba(255,45,120,0.2); grid-column: span 2;">
+        <div class="about-card mindset-card" style="border-color:rgba(255,45,120,0.2); grid-column: span 2;">
             <div class="about-label" style="color:var(--pink); text-shadow:0 0 10px var(--pink);">MINDSET & INTERESTS</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+            <div class="mindset-inner" style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
                 <div>
                     <div style="font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:12px;">🔍 Bug Detective</div>
                     <p style="font-size:0.95rem; color:rgba(255,255,255,0.7); line-height:1.75;">
@@ -517,7 +532,7 @@
 </div>
 
 <!-- ═══════════ TECH STACK ═══════════ -->
-<div class="reveal" style="max-width:1200px; margin:0 auto; padding:0 40px 80px;">
+<div class="reveal skills-section" style="max-width:1200px; margin:0 auto; padding:0 40px 80px;">
     <div class="section-label">// TECH_STACK</div>
 
     <div class="skills-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
@@ -574,10 +589,10 @@
 </div>
 
 <!-- ═══════════ CONTACT ═══════════ -->
-<div class="reveal" style="max-width:1200px; margin:0 auto; padding:0 40px 100px;">
+<div class="reveal contact-section" style="max-width:1200px; margin:0 auto; padding:0 40px 100px;">
     <div class="section-label">// CONTACT</div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+    <div class="contact-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
 
         <div class="about-card" style="border-color:rgba(0,229,255,0.2); display:flex; flex-direction:column; justify-content:center; gap:20px;">
             <div style="font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; line-height:1.2;">
@@ -628,7 +643,7 @@
 </div>
 
 <!-- ═══════════ BOT WIDGET ═══════════ -->
-<div class="bot-wrapper" style="position:fixed; bottom:30px; right:30px; z-index:1000;">
+<div class="bot-wrapper" style="position:fixed; bottom:30px; right:30px; z-index:10002; width:60px; height:60px;">
     <div id="bot-window">
         <div style="padding:18px 20px; border-bottom:1px solid rgba(180,79,255,0.25); display:flex; align-items:center; gap:10px;">
             <div style="width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 10px var(--purple);"></div>

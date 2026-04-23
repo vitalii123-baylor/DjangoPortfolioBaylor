@@ -8,6 +8,21 @@ from django.contrib.auth.models import User
 from .models import Budget, BudgetCategory, Expense, DailyAdvice
 from .claude_service import categorize_expense, generate_daily_advice
 
+ICON_MAP = {
+    'coffee': '☕', 'car': '🚗', 'film': '🎬', 'shopping-bag': '🛍️',
+    'heart': '💊', 'food': '🍔', 'transport': '🚗', 'entertainment': '🎬',
+    'shopping': '🛍️', 'health': '💊', 'home': '🏠', 'music': '🎵',
+    'book': '📚', 'gift': '🎁', 'plane': '✈️', 'phone': '📱',
+    'zap': '⚡', 'dollar-sign': '💵', 'credit-card': '💳',
+}
+
+def resolve_icon(icon: str) -> str:
+    if icon in ICON_MAP:
+        return ICON_MAP[icon]
+    if len(icon) <= 4:
+        return icon
+    return '💰'
+
 def get_demo_user():
     user = User.objects.filter(username='demo').first()
     if not user:
@@ -21,11 +36,11 @@ def get_dashboard_data(user):
         budget = Budget.objects.create(user=user, current_month=month_start, total_monthly_limit=Decimal('2500.00'))
         # Create default categories
         default_cats = [
-            ('Food & Drinks', 'coffee', 500),
-            ('Transport', 'car', 300),
-            ('Entertainment', 'film', 200),
-            ('Shopping', 'shopping-bag', 400),
-            ('Health', 'heart', 150),
+            ('Food & Drinks', '☕', 500),
+            ('Transport', '🚗', 300),
+            ('Entertainment', '🎬', 200),
+            ('Shopping', '🛍️', 400),
+            ('Health', '💊', 150),
         ]
         for name, icon, limit in default_cats:
             BudgetCategory.objects.create(budget=budget, name=name, icon=icon, limit=Decimal(str(limit)))
@@ -39,7 +54,7 @@ def get_dashboard_data(user):
     for cat in budget.categories.all():
         spent = cat.get_spent()
         categories.append({
-            'name': cat.name, 'icon': cat.icon, 'spent': float(spent),
+            'name': cat.name, 'icon': resolve_icon(cat.icon), 'spent': float(spent),
             'limit': float(cat.limit), 'percentage': cat.get_percentage()
         })
     
