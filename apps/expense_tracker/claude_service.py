@@ -47,42 +47,6 @@ ONLY JSON, nothing else."""
         }
 
 
-def parse_receipt_image(image_bytes: bytes, mime_type: str) -> list:
-    from google.genai import types
-    prompt = """Look at this grocery receipt/check image and extract all purchased items with prices.
-
-Return ONLY a valid JSON array, no markdown, no explanation:
-[{"name": "item name", "amount": 4.99, "category": "Food & Drinks"}, ...]
-
-Rules:
-- Include every individual line item that has a price
-- amount must be a positive number (no currency symbols)
-- category: one of Food & Drinks, Transport, Entertainment, Subscriptions, Health, Clothing, Housing, Other
-- Skip tax, tip, subtotal, total, discount lines — only product items
-- If not a receipt or unreadable, return []
-- Return ONLY the JSON array, nothing else"""
-
-    try:
-        client = _get_client()
-        response = client.models.generate_content(
-            model='gemini-2.5-flash-lite',
-            contents=[
-                types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                types.Part.from_text(prompt)
-            ]
-        )
-        raw = response.text.strip()
-        if raw.startswith('```'):
-            parts = raw.split('```')
-            raw = parts[1] if len(parts) > 1 else raw
-            if raw.startswith('json'):
-                raw = raw[4:]
-        items = json.loads(raw.strip())
-        return items if isinstance(items, list) else []
-    except Exception:
-        return []
-
-
 def generate_daily_advice(expenses_summary: str) -> str:
     prompt = f"""You are a friendly financial advisor. Here is a summary of this user's expenses this month:
 

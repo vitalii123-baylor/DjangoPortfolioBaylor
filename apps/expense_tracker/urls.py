@@ -9,5 +9,4 @@ urlpatterns = [
     path('seed/', views.seed_demo_data, name='seed_expenses'),
     path('clear/', views.clear_data, name='clear_expenses'),
     path('update-budget/', views.update_budget_limit, name='update_budget'),
-    path('upload-receipt/', views.upload_receipt, name='upload_receipt'),
 ]

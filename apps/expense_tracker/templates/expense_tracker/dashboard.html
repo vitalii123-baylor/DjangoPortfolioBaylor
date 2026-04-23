@@ -139,48 +139,6 @@
     .cat-pct  { font-size: 0.75rem !important; }
     .cat-row .item-sub { font-size: 0.72rem; margin-top: 1px; }
 
-    .btn-receipt {
-        background: transparent;
-        color: var(--cyan);
-        border: 1px dashed rgba(0,229,255,0.4);
-        padding: 11px 20px;
-        border-radius: 12px;
-        font-family: 'Orbitron', monospace;
-        font-weight: 700;
-        font-size: 0.72rem;
-        letter-spacing: 0.08em;
-        cursor: pointer;
-        transition: 0.3s;
-        width: 100%;
-    }
-    .btn-receipt:hover {
-        background: rgba(0,229,255,0.06);
-        border-color: var(--cyan);
-        box-shadow: 0 0 14px var(--cyan-glow);
-    }
-
-    /* Drop-zone highlight when dragging over card */
-    .drop-active { border-color: var(--cyan) !important; box-shadow: 0 0 30px var(--cyan-glow) !important; }
-
-    /* Toast */
-    #receipt-toast {
-        position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
-        background: rgba(7,2,15,0.95);
-        border: 1px solid var(--cyan);
-        box-shadow: 0 0 24px var(--cyan-glow);
-        padding: 14px 28px;
-        border-radius: 14px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.82rem;
-        color: var(--cyan);
-        z-index: 9999;
-        transition: transform 0.4s cubic-bezier(0.2,1,0.3,1), opacity 0.4s;
-        opacity: 0;
-        pointer-events: none;
-        white-space: nowrap;
-    }
-    #receipt-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-    #receipt-toast.error { border-color: var(--pink); color: var(--pink); box-shadow: 0 0 24px var(--pink-glow); }
 </style>
 {% endblock %}
 
@@ -218,7 +176,7 @@
         </div>
 
         <!-- Add Expense -->
-        <div class="bento-card span-4" id="inject-card">
+        <div class="bento-card span-4">
             <span class="card-label">Data_Injection</span>
             <div style="display: flex; flex-direction: column; gap: 15px;">
                 <input id="exp-text" class="exp-input" placeholder="e.g. Cinema $30" onkeyup="if(event.key==='Enter') addExp()">
@@ -226,17 +184,8 @@
                     ▸ AI_PARSER_ACTIVE — describe expense & amount
                 </div>
                 <button class="btn-action" onclick="addExp()">EXECUTE_INJECTION</button>
-
-                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 14px;">
-                    <input type="file" id="receipt-input" accept="image/*" style="display:none" onchange="scanReceipt(this.files[0])">
-                    <button class="btn-receipt" onclick="document.getElementById('receipt-input').click()">
-                        📷 &nbsp;SCAN_RECEIPT
-                    </button>
-                    <div style="text-align:center; margin-top:8px; font-size:0.62rem; font-family:'JetBrains Mono'; color:rgba(255,255,255,0.2);">or drag & drop image here</div>
-                </div>
             </div>
             <div id="add-loading" style="display:none; margin-top: 20px; text-align: center; color: var(--purple); font-family: 'Orbitron',monospace; font-size: 0.72rem; letter-spacing:0.2em; text-shadow:0 0 10px var(--purple);">▸ ANALYZING_STREAMS...</div>
-            <div id="scan-loading" style="display:none; margin-top: 20px; text-align: center; color: var(--cyan); font-family: 'Orbitron',monospace; font-size: 0.72rem; letter-spacing:0.2em; text-shadow:0 0 10px var(--cyan);">▸ SCANNING_RECEIPT...</div>
         </div>
 
         <!-- Chart -->
@@ -290,8 +239,6 @@
         </div>
     </div>
 </div>
-
-<div id="receipt-toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -404,44 +351,6 @@ async function updateLimit() {
     await apiAction('/api/expenses/update-budget/', { limit });
     toggleEdit(false);
 }
-
-async function scanReceipt(file) {
-    if (!file) return;
-    document.getElementById('scan-loading').style.display = 'block';
-    const form = new FormData();
-    form.append('receipt', file);
-    form.append('csrfmiddlewaretoken', CSRF);
-    try {
-        const res = await fetch('/api/expenses/upload-receipt/', { method: 'POST', headers: { 'X-CSRFToken': CSRF }, body: form });
-        const data = await res.json();
-        document.getElementById('scan-loading').style.display = 'none';
-        document.getElementById('receipt-input').value = '';
-        if (data.error) { showToast('✗ ' + data.error, true); return; }
-        updateUI(data);
-        showToast('✓ ' + data.scanned_count + ' items added from receipt');
-    } catch(e) {
-        document.getElementById('scan-loading').style.display = 'none';
-        showToast('✗ Upload failed', true);
-    }
-}
-
-function showToast(msg, isError = false) {
-    const t = document.getElementById('receipt-toast');
-    t.textContent = msg;
-    t.className = 'show' + (isError ? ' error' : '');
-    setTimeout(() => { t.className = isError ? 'error' : ''; }, 3500);
-}
-
-// Drag & drop on inject card
-const injectCard = document.getElementById('inject-card');
-injectCard.addEventListener('dragover', e => { e.preventDefault(); injectCard.classList.add('drop-active'); });
-injectCard.addEventListener('dragleave', () => injectCard.classList.remove('drop-active'));
-injectCard.addEventListener('drop', e => {
-    e.preventDefault();
-    injectCard.classList.remove('drop-active');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) scanReceipt(file);
-});
 
 // Initial Load
 initChart({{ daily_labels|safe }}, {{ daily_values|safe }});
