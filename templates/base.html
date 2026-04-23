@@ -168,7 +168,7 @@
         /* SCANLINES — global */
         body::after {
             content: '';
-            position: fixed; inset: 0; z-index: 9999;
+            position: fixed; inset: 0; z-index: 50;
             pointer-events: none;
             background: repeating-linear-gradient(
                 to bottom,
@@ -212,6 +212,71 @@
             .nav-links a { font-size: 0.6rem; letter-spacing: 0.06em; }
             .nav-linkedin-label { display: none; }
         }
+
+        /* CUSTOM CURSOR */
+        @media (pointer: fine) {
+            *, *::before, *::after { cursor: none !important; }
+
+            #cur-dot {
+                position: fixed; top: 0; left: 0; z-index: 99999;
+                width: 6px; height: 6px;
+                background: var(--cyan);
+                border-radius: 50%;
+                box-shadow: 0 0 8px var(--cyan), 0 0 16px var(--cyan-glow);
+                pointer-events: none;
+                transform: translate(-50%, -50%);
+                transition: background 0.15s, box-shadow 0.15s, transform 0.08s;
+                will-change: transform;
+            }
+
+            #cur-ring {
+                position: fixed; top: 0; left: 0; z-index: 99998;
+                width: 32px; height: 32px;
+                border: 1px solid rgba(0,229,255,0.6);
+                border-radius: 50%;
+                pointer-events: none;
+                transform: translate(-50%, -50%);
+                box-shadow: 0 0 8px var(--cyan-glow), inset 0 0 6px rgba(0,229,255,0.05);
+                transition: width 0.2s, height 0.2s, border-color 0.2s, box-shadow 0.2s;
+                will-change: transform;
+            }
+
+            /* crosshair lines */
+            #cur-ring::before, #cur-ring::after {
+                content: '';
+                position: absolute;
+                background: rgba(0,229,255,0.35);
+            }
+            #cur-ring::before {
+                width: 1px; height: 8px;
+                left: 50%; top: -12px;
+                transform: translateX(-50%);
+            }
+            #cur-ring::after {
+                width: 8px; height: 1px;
+                top: 50%; left: -12px;
+                transform: translateY(-50%);
+            }
+
+            /* hover state — pink target lock */
+            body.cur-hover #cur-dot {
+                background: var(--pink);
+                box-shadow: 0 0 10px var(--pink), 0 0 20px var(--pink-glow);
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+            body.cur-hover #cur-ring {
+                width: 40px; height: 40px;
+                border-color: rgba(255, 45, 120, 0.7);
+                box-shadow: 0 0 12px var(--pink-glow), inset 0 0 8px rgba(255,45,120,0.05);
+            }
+
+            /* click pulse */
+            body.cur-click #cur-ring {
+                width: 48px; height: 48px;
+                border-color: var(--cyan);
+                opacity: 0.4;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -231,7 +296,54 @@
     {% block content %}{% endblock %}
     {% block extra_js %}{% endblock %}
 
+    <div id="cur-dot" style="opacity:0"></div>
+    <div id="cur-ring" style="opacity:0"></div>
+
     <script>
+        /* Custom cursor — only on pointer-fine devices */
+        (function() {
+            if (window.matchMedia('(pointer: fine)').matches) {
+                const dot  = document.getElementById('cur-dot');
+                const ring = document.getElementById('cur-ring');
+                let rx = 0, ry = 0, mx = 0, my = 0;
+
+                document.addEventListener('mousemove', e => {
+                    mx = e.clientX; my = e.clientY;
+                    dot.style.left = mx + 'px';
+                    dot.style.top  = my + 'px';
+                    if (dot.style.opacity === '0') {
+                        rx = mx; ry = my;
+                        dot.style.opacity = '1';
+                        ring.style.opacity = '1';
+                    }
+                });
+
+                /* ring follows with smooth lag */
+                (function loop() {
+                    rx += (mx - rx) * 0.12;
+                    ry += (my - ry) * 0.12;
+                    ring.style.left = rx + 'px';
+                    ring.style.top  = ry + 'px';
+                    requestAnimationFrame(loop);
+                })();
+
+                /* hover state on clickable elements */
+                const clickables = 'a, button, input, textarea, select, label, [onclick], [role="button"]';
+                document.addEventListener('mouseover', e => {
+                    if (e.target.closest(clickables)) document.body.classList.add('cur-hover');
+                });
+                document.addEventListener('mouseout', e => {
+                    if (e.target.closest(clickables)) document.body.classList.remove('cur-hover');
+                });
+
+                /* click pulse */
+                document.addEventListener('mousedown', () => {
+                    document.body.classList.add('cur-click');
+                    setTimeout(() => document.body.classList.remove('cur-click'), 200);
+                });
+            }
+        })();
+
         /* Global particles — all pages */
         const _colors = ['#00e5ff','#ff2d78','#b44fff','#ff8c00'];
         for (let i = 0; i < 24; i++) {

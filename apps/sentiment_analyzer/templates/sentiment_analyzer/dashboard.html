@@ -110,6 +110,40 @@
     .badge-neg { background: rgba(248, 113, 113, 0.1); color: #fca5a5; }
     .badge-neu { background: rgba(156, 163, 175, 0.1); color: #d1d5db; }
 
+    .source-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 20px;
+        font-family: 'JetBrains Mono'; font-size: 0.65rem; font-weight: 800;
+        letter-spacing: 0.05em; transition: 0.3s;
+    }
+    .source-badge.live {
+        background: rgba(52, 211, 153, 0.08);
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        color: #34d399;
+        box-shadow: 0 0 10px rgba(52, 211, 153, 0.15);
+    }
+    .source-badge.demo {
+        background: rgba(251, 191, 36, 0.08);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        color: #fbbf24;
+    }
+    .source-badge .dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        display: inline-block;
+    }
+    .source-badge.live .dot { background: #34d399; animation: blink 1.2s infinite; }
+    .source-badge.demo .dot { background: #fbbf24; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .ai-limit-note {
+        font-size: 0.65rem; font-family: 'JetBrains Mono';
+        color: #fbbf24; padding: 4px 10px;
+        border-radius: 8px;
+        background: rgba(251,191,36,0.07);
+        border: 1px solid rgba(251,191,36,0.2);
+        margin-left: 10px;
+    }
+
     #loading-overlay { display: none; text-align: center; padding: 80px 0; }
     .decrypt-text { font-family: 'JetBrains Mono'; color: var(--n-cyan); font-size: 0.9rem; margin-top: 20px; letter-spacing: 2px; }
 </style>
@@ -162,14 +196,18 @@
             </div>
 
             <div class="card" style="margin-bottom: 30px; padding: 30px;">
-                <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--n-purple); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--n-purple); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap:wrap;">
                     <div style="width: 6px; height: 6px; background: var(--n-purple); border-radius: 50%;"></div>
                     :: STRATEGIC_AI_INSIGHTS
+                    <span id="ai-badge" style="display:none;"></span>
                 </div>
                 <div id="ai-analysis" class="ai-summary-box"></div>
             </div>
 
-            <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--n-cyan); margin-bottom: 20px; letter-spacing: 2px;">:: INTERCEPTED_FEED_SAMPLES</div>
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+                <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--n-cyan); letter-spacing: 2px;">:: INTERCEPTED_FEED_SAMPLES</div>
+                <span id="source-badge" style="display:none;"></span>
+            </div>
             <div id="posts-feed" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;"></div>
         </div>
 
@@ -244,11 +282,38 @@ async function loadResult(id) {
 function renderResults(data) {
     document.getElementById('loading-overlay').style.display = 'none';
     document.getElementById('results-section').style.display = 'grid';
-    
+
     document.getElementById('r-pos-pct').textContent = Math.round(data.positive_pct) + '%';
     document.getElementById('r-neg-pct').textContent = Math.round(data.negative_pct) + '%';
     document.getElementById('r-neu-pct').textContent = Math.round(data.neutral_pct) + '%';
-    document.getElementById('ai-analysis').textContent = data.ai_analysis;
+
+    // Source badge
+    const srcBadge = document.getElementById('source-badge');
+    if (data.source_type) {
+        const isLive = data.source_type === 'real_news';
+        srcBadge.className = 'source-badge ' + (isLive ? 'live' : 'demo');
+        srcBadge.innerHTML = `<span class="dot"></span>${isLive ? 'LIVE NEWS' : 'DEMO MODE'}`;
+        srcBadge.style.display = 'inline-flex';
+    } else {
+        srcBadge.style.display = 'none';
+    }
+
+    // AI analysis + AI badge
+    const aiBadge = document.getElementById('ai-badge');
+    let aiText = data.ai_analysis || '';
+    if (aiText.startsWith('[AI_LIMIT_REACHED]')) {
+        aiText = aiText.replace('[AI_LIMIT_REACHED] :: ', '');
+        aiBadge.className = 'ai-limit-note';
+        aiBadge.textContent = '⚠ AI LIMIT';
+        aiBadge.style.display = 'inline-block';
+    } else if (aiText) {
+        aiBadge.className = '';
+        aiBadge.innerHTML = '<span style="color:#34d399;font-family:JetBrains Mono;font-size:0.65rem;">● GEMINI LIVE</span>';
+        aiBadge.style.display = 'inline-block';
+    } else {
+        aiBadge.style.display = 'none';
+    }
+    document.getElementById('ai-analysis').textContent = aiText;
 
     const feed = document.getElementById('posts-feed');
     feed.innerHTML = '';
@@ -256,9 +321,10 @@ function renderResults(data) {
         const div = document.createElement('div');
         div.className = 'feed-card';
         const badge = p.sentiment === 'positive' ? 'badge-pos' : p.sentiment === 'negative' ? 'badge-neg' : 'badge-neu';
+        const sourceLabel = (p.source && p.source !== 'Demo_Node') ? p.source : `NODE_X_${Math.floor(Math.random()*999)}`;
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-family:'JetBrains Mono'; font-size:0.65rem;">
-                <span style="color:var(--n-cyan);">@NODE_X_${Math.floor(Math.random()*999)}</span>
+                <span style="color:var(--n-cyan); max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${sourceLabel}">@${sourceLabel}</span>
                 <span class="badge ${badge}">${p.sentiment.toUpperCase()}</span>
             </div>
             <div style="font-size:0.85rem; line-height:1.5; color:rgba(255,255,255,0.9);">"${p.text}"</div>
