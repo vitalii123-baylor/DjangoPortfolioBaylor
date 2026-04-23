@@ -3,10 +3,26 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.conf import settings
-from apps.sentiment_analyzer.gemini_service import _get_client
+from google import genai
+
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    return _client
+
+JOBS = [
+    {'company': 'Baylor University',        'role': 'Teacher Assistant',       'period': 'Aug 2025 – Present',       'color': 'var(--cyan)'},
+    {'company': 'Brazos Innovation Partners','role': 'Software Engineer Intern', 'period': 'Jun 2025 – Jul 2025',      'color': '#4ade80'},
+    {'company': 'Upwork',                   'role': 'Full Stack Developer',     'period': 'Mar 2022 – Jan 2025',      'color': 'var(--purple)'},
+    {'company': 'JazzTeam',                 'role': 'Full Stack Developer',     'period': 'Mar 2020 – Mar 2022',      'color': 'var(--pink)'},
+    {'company': 'Likeit',                   'role': 'Front-end Developer',      'period': 'Aug 2018 – Jan 2020',      'color': 'rgba(255,140,0,0.9)'},
+]
 
 def home(request):
-    return render(request, 'core/home.html')
+    return render(request, 'core/home.html', {'jobs': JOBS})
 
 def projects(request):
     project_list = [
@@ -19,16 +35,6 @@ def projects(request):
             'module_tag': 'FINANCE · AI',
             'accent': 'var(--cyan)',
             'accent_glow': 'var(--cyan-glow)',
-        },
-        {
-            'title': 'AI Sentiment Analyzer',
-            'desc': 'Real-time public opinion analysis on any topic using generative AI synthesis. Processes live data streams and produces structured sentiment reports.',
-            'url': '/api/sentiment/dashboard/',
-            'icon': '📡',
-            'tech': ['Python', 'Gemini AI', 'NLP', 'REST API'],
-            'module_tag': 'INTEL · ML',
-            'accent': 'var(--purple)',
-            'accent_glow': 'var(--purple-glow)',
         },
         {
             'title': 'Portfolio AI Assistant',
@@ -48,12 +54,22 @@ def chat_ask(request):
     try:
         data = json.loads(request.body)
         user_msg = data.get('message', '')
-        
-        prompt = f"""You are "Vitalii-Bot v1.0", a high-tech AI digital assistant for Vitalii's professional portfolio.
-Your mission is to provide information about Vitalii (a Cybersecurity Master's student and Software Developer).
-CONTEXT: Education at Baylor (MSIS), Stack (Python, React, Django), Focus on Security Analytics & Data Viz.
 
-USER QUERY: "{user_msg}"
+        prompt = f"""You are "Vitalii-Bot v1.0", a professional AI assistant for Vitalii Kandabarov's portfolio.
+
+PROFILE:
+- Name: Vitalii Kandabarov
+- Location: Arlington, Texas, USA
+- Education: MSIS Cybersecurity @ Baylor University (2025–2027); BE Software Engineering @ Baranovichi State University (2016–2020)
+- Experience: 6+ years — Teacher Assistant at Baylor (2025–present), Software Engineer Intern at Brazos Innovation Partners (2025), Full Stack Developer at Upwork (2022–2025), JazzTeam (2020–2022), Front-end Developer at Likeit (2018–2020)
+- Stack: JavaScript, React, TypeScript, Python, Django, C#, HTML/CSS, Git, Docker, REST APIs, Cybersecurity, AI APIs (Gemini, OpenAI)
+- Key achievements: Jira dashboard system (−40% tracking issues), React migration (−25% tech debt), WebSocket audio annotation tool (+50% analysis speed), volunteer at refugee center in Germany
+- Certifications: English Proficiency Certificate, AWS Cloud Practitioner (in progress)
+- Interests: Anime — Kingdom; Books — The Girl with the Dragon Tattoo (Stieg Larsson), Lupin; Detective fiction, bug hunting
+
+Answer concisely and professionally. If asked about interests/hobbies, mention Kingdom anime, The Girl with the Dragon Tattoo, Lupin.
+
+USER: "{user_msg}"
 RESPONSE:"""
 
         client = _get_client()
@@ -61,10 +77,6 @@ RESPONSE:"""
         return JsonResponse({'answer': response.text.strip()})
     except Exception as e:
         error_msg = str(e)
-        # Обработка лимитов и перегрузки
         if "429" in error_msg or "quota" in error_msg.lower() or "503" in error_msg:
-            return JsonResponse({'answer': "[AI_STANDBY_MODE] :: Tokens exhausted or system high demand. Please wait for cycle refresh. Briefly: Vitalii is a MSIS student at Baylor University specializing in Cyber Security and Python. 🛡️"})
-        
-        # Общий fallback
-        return JsonResponse({'answer': "System running in legacy mode. Vitalii is a MSIS student at Baylor specializing in Cyber Security and Software Development. 🤖"})
-
+            return JsonResponse({'answer': "[AI_STANDBY_MODE] :: Tokens exhausted. Vitalii is an MSIS student at Baylor University specializing in Cybersecurity and Full-Stack Development. 🛡️"})
+        return JsonResponse({'answer': "System in legacy mode. Vitalii is a developer specializing in React, Python, and Cybersecurity. 🤖"})
