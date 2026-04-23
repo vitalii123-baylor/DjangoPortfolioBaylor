@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from .models import Budget, BudgetCategory, Expense, DailyAdvice
-from .claude_service import categorize_expense, generate_daily_advice
+from .claude_service import categorize_expense, generate_daily_advice, parse_receipt_image
 
 ICON_MAP = {
     'coffee': '☕', 'car': '🚗', 'film': '🎬', 'shopping-bag': '🛍️',
@@ -104,6 +104,53 @@ def add_expense(request):
         return JsonResponse(get_dashboard_data(user))
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@require_POST
+def upload_receipt(request):
+    try:
+        user = get_demo_user()
+        image_file = request.FILES.get('receipt')
+        if not image_file:
+            return JsonResponse({'error': 'No file uploaded'}, status=400)
+
+        if image_file.content_type not in ['image/jpeg', 'image/png', 'image/webp', 'image/gif']:
+            return JsonResponse({'error': 'Upload a JPEG, PNG or WebP image'}, status=400)
+        if image_file.size > 5 * 1024 * 1024:
+            return JsonResponse({'error': 'File too large (max 5 MB)'}, status=400)
+
+        items = parse_receipt_image(image_file.read(), image_file.content_type)
+        if not items:
+            return JsonResponse({'error': 'Could not read receipt — try a clearer photo'}, status=422)
+
+        created = 0
+        for item in items:
+            name = str(item.get('name', '')).strip()
+            try:
+                amount = round(float(item.get('amount', 0)), 2)
+            except (TypeError, ValueError):
+                continue
+            if not name or amount <= 0:
+                continue
+            Expense.objects.create(
+                user=user,
+                original_text=name,
+                category=item.get('category', 'Other'),
+                subcategory='Receipt scan',
+                amount=Decimal(str(amount)),
+                is_necessary=True,
+                ai_comment='📸 Added from receipt scan'
+            )
+            created += 1
+
+        if not created:
+            return JsonResponse({'error': 'No valid items found in receipt'}, status=422)
+
+        data = get_dashboard_data(user)
+        data['scanned_count'] = created
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @require_POST
 def seed_demo_data(request):
