@@ -165,7 +165,7 @@
             
             <div style="display: flex; justify-content: space-between;">
                 <span class="stat-text" style="color:var(--cyan);" id="ui-spent-pct">{{ total_percentage|floatformat:1 }}% UTILIZED</span>
-                <span class="stat-text">$<span id="ui-remaining">{{ total_remaining|floatformat:0 }}</span> REMAINING</span>
+                <span id="ui-remaining-wrap" class="stat-text"></span>
             </div>
             
             <div style="margin-top: 40px; display: flex; gap: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px;">
@@ -262,12 +262,25 @@ function initChart(labels, values) {
     });
 }
 
+function renderRemaining(rem) {
+    const wrap = document.getElementById('ui-remaining-wrap');
+    if (rem < 0) {
+        wrap.innerHTML = `<span style="color:var(--pink);font-weight:700;font-family:'Orbitron',monospace;font-size:0.85rem;letter-spacing:0.05em;">−$${Math.abs(Math.round(rem))} OVER BUDGET</span>`;
+    } else {
+        wrap.innerHTML = `<span style="color:rgba(255,255,255,0.55);">$${Math.round(rem)} REMAINING</span>`;
+    }
+}
+
 function updateUI(data) {
     document.getElementById('ui-total-spent').textContent = '$' + Math.round(data.total_spent);
     document.getElementById('ui-total-limit').textContent = Math.round(data.total_limit);
-    document.getElementById('ui-remaining').textContent = Math.round(data.total_remaining);
     document.getElementById('ui-spent-pct').textContent = data.total_percentage.toFixed(1) + '% UTILIZED';
-    document.getElementById('ui-p-bar').style.width = Math.min(data.total_percentage, 100) + '%';
+    renderRemaining(data.total_remaining);
+    const bar = document.getElementById('ui-p-bar');
+    bar.style.width = Math.min(data.total_percentage, 100) + '%';
+    bar.style.background = data.total_percentage > 100
+        ? 'linear-gradient(90deg, var(--pink), var(--orange))'
+        : 'linear-gradient(90deg, var(--cyan), var(--purple))';
     
     initChart(data.daily_labels, data.daily_values);
     
@@ -340,5 +353,9 @@ async function updateLimit() {
 
 // Initial Load
 initChart({{ daily_labels|safe }}, {{ daily_values|safe }});
+renderRemaining({{ total_remaining }});
+{% if total_percentage > 100 %}
+document.getElementById('ui-p-bar').style.background = 'linear-gradient(90deg, var(--pink), var(--orange))';
+{% endif %}
 </script>
 {% endblock %}
