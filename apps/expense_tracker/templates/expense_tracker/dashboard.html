@@ -114,7 +114,9 @@
     .item-row:hover { transform: translateX(4px); }
     .item-label { font-weight: 700; font-size: 1rem; font-family: 'Exo 2', sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
     .item-sub { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-family: 'JetBrains Mono', monospace; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .item-amount { font-weight: 800; font-size: 1.1rem; font-family: 'Orbitron', monospace; color: var(--pink); flex-shrink: 0; }
+    .item-amount { font-weight: 800; font-size: 1rem; font-family: 'Orbitron', monospace; flex-shrink: 0; padding: 4px 10px; border-radius: 8px; letter-spacing: 0.03em; }
+    .amount-neg { color: var(--pink); background: rgba(255,45,120,0.12); border: 1px solid rgba(255,45,120,0.25); }
+    .amount-pos { color: #4ade80; background: rgba(74,222,128,0.10); border: 1px solid rgba(74,222,128,0.25); }
     .item-pct { font-family: 'Orbitron', monospace; font-size: 0.82rem; font-weight: 800; color: var(--purple); flex-shrink: 0; }
     .item-text-wrap { flex: 1; min-width: 0; overflow: hidden; }
     .del-btn { background:none; border:none; color:rgba(255,255,255,0.2); cursor:pointer; font-size:1.1rem; padding-left:12px; transition:0.2s; }
@@ -228,7 +230,7 @@
                         <div class="item-label" title="{{ e.text }}">{{ e.text }}</div>
                         <div class="item-sub">{{ e.date }} · {{ e.cat|upper }}</div>
                     </div>
-                    <div class="item-amount">-${{ e.amount }}</div>
+                    <div class="item-amount {% if e.amount >= 0 %}amount-neg{% else %}amount-pos{% endif %}">{% if e.amount >= 0 %}−{% else %}+{% endif %}${{ e.amount|floatformat:0 }}</div>
                     <button class="del-btn" onclick="apiAction('/api/expenses/delete/{{ e.id }}/')">×</button>
                 </div>
                 {% endfor %}
@@ -291,7 +293,7 @@ function updateUI(data) {
                 <div class="item-label" title="${e.text}">${e.text}</div>
                 <div class="item-sub">${e.date} · ${e.cat.toUpperCase()}</div>
             </div>
-            <div class="item-amount">-$${e.amount}</div>
+            <div class="item-amount ${e.amount >= 0 ? 'amount-neg' : 'amount-pos'}">${e.amount >= 0 ? '−' : '+'}$${Math.abs(Math.round(e.amount))}</div>
             <button class="del-btn" onclick="apiAction('/api/expenses/delete/${e.id}/')">×</button>
         </div>
     `).join('');
