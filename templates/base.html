@@ -214,7 +214,7 @@
         }
 
         /* CUSTOM CURSOR */
-        @media (pointer: fine) {
+        @media (hover: hover) and (pointer: fine), (hover: hover) and (pointer: coarse) and (min-width: 1024px) {
             *, *::before, *::after { cursor: none !important; }
 
             #cur-dot {
@@ -302,7 +302,8 @@
     <script>
         /* Custom cursor — only on pointer-fine devices */
         (function() {
-            if (window.matchMedia('(pointer: fine)').matches) {
+            const isDesktop = window.matchMedia('(hover: hover)').matches && !('ontouchstart' in window && navigator.maxTouchPoints > 1);
+            if (isDesktop) {
                 const dot  = document.getElementById('cur-dot');
                 const ring = document.getElementById('cur-ring');
                 let rx = 0, ry = 0, mx = 0, my = 0;
