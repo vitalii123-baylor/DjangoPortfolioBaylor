@@ -31,8 +31,6 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html { overflow-x: hidden; }
-
         body {
             background-color: var(--bg);
             background-image:
@@ -47,7 +45,7 @@
             font-family: 'Exo 2', sans-serif;
             color: #fff;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow-x: clip;
         }
 
         /* NAVBAR */
@@ -95,8 +93,9 @@
 
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 10px; box-shadow: 0 0 8px var(--purple-glow); }
+        * { scrollbar-width: thin; scrollbar-color: var(--purple) var(--bg); }
 
         /* CARDS */
         .card, .info-card, .bento-card, .project-card {
