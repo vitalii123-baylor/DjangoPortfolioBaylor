@@ -17,7 +17,6 @@ def categorize_expense(text: str) -> dict:
 
 Return JSON with these fields:
 - category: one of (Food/Drinks, Transport, Entertainment, Subscriptions, Health, Clothing, Housing, Other)
-- subcategory: specific subcategory (e.g., Coffee, Gas, Netflix)
 - amount: numeric amount if mentioned in text, otherwise null
 - is_necessary: true or false (is this expense necessary?)
 - advice: short tip in English (1-2 sentences with emoji)
@@ -40,7 +39,6 @@ ONLY JSON, nothing else."""
     except Exception as e:
         return {
             'category': 'Other',
-            'subcategory': '',
             'amount': None,
             'is_necessary': True,
             'advice': f'Could not analyze expense. ({e})'

@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
-from .models import Budget, BudgetCategory, Expense, DailyAdvice
+from .models import Budget, BudgetCategory, Expense
 from .claude_service import categorize_expense, generate_daily_advice
 
 ICON_MAP = {
@@ -88,8 +88,7 @@ def get_dashboard_data(user):
 def dashboard(request):
     user = get_demo_user()
     data = get_dashboard_data(user)
-    today_advice = DailyAdvice.objects.filter(user=user, created_at__date=datetime.date.today()).first()
-    return render(request, 'expense_tracker/dashboard.html', {**data, 'today_advice': today_advice})
+    return render(request, 'expense_tracker/dashboard.html', data)
 
 @require_POST
 def add_expense(request):

@@ -61,7 +61,6 @@ class Expense(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     original_text = models.TextField()
     category = models.CharField(max_length=100, default='Прочее')
-    subcategory = models.CharField(max_length=100, blank=True, default='')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_necessary = models.BooleanField(default=True)
     ai_comment = models.TextField(blank=True, default='')
@@ -76,13 +75,3 @@ class Expense(models.Model):
         return f"{self.category}: ${self.amount} — {self.date.strftime('%d.%m.%Y')}"
 
 
-class DailyAdvice(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_advice')
-    advice_text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Совет для {self.user.username} от {self.created_at.strftime('%d.%m.%Y')}"

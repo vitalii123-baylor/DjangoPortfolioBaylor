@@ -83,9 +83,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # API Keys — MUST be set via environment variables on Railway
-ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '')
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
@@ -94,6 +92,3 @@ REST_FRAMEWORK = {
     ],
 }
 
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'

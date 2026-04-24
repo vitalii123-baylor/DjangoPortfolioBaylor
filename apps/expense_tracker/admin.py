@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Budget, BudgetCategory, Expense, DailyAdvice
+from .models import Budget, BudgetCategory, Expense
 
 @admin.register(Budget)
 class BudgetAdmin(admin.ModelAdmin):
@@ -13,7 +13,3 @@ class BudgetCategoryAdmin(admin.ModelAdmin):
 class ExpenseAdmin(admin.ModelAdmin):
     list_display = ('user', 'category', 'amount', 'date', 'is_necessary')
     list_filter = ('category', 'is_necessary')
-
-@admin.register(DailyAdvice)
-class DailyAdviceAdmin(admin.ModelAdmin):
-    list_display = ('user', 'created_at')
