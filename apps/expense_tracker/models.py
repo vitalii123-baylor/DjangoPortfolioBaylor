@@ -60,7 +60,7 @@ class BudgetCategory(models.Model):
 class Expense(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     original_text = models.TextField()
-    category = models.CharField(max_length=100, default='Прочее')
+    category = models.CharField(max_length=100, default='Other')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     is_necessary = models.BooleanField(default=True)
     ai_comment = models.TextField(blank=True, default='')

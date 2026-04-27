@@ -84,6 +84,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # API Keys — MUST be set via environment variables on Railway
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '')
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [

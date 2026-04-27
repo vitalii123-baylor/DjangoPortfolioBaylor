@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
+from django.utils import timezone
 from .models import Budget, BudgetCategory, Expense
 from .claude_service import categorize_expense, generate_daily_advice
 
@@ -46,10 +47,9 @@ def get_dashboard_data(user):
             BudgetCategory.objects.create(budget=budget, name=name, icon=icon, limit=Decimal(str(limit)))
     
     today = datetime.date.today()
-    # Берем расходы за последние 30 дней для адекватного графика
     start_date = today - datetime.timedelta(days=30)
     expenses = Expense.objects.filter(user=user, date__date__gte=start_date).order_by('-date')
-    
+
     categories = []
     for cat in budget.categories.all():
         spent = cat.get_spent()
@@ -57,10 +57,8 @@ def get_dashboard_data(user):
             'name': cat.name, 'icon': resolve_icon(cat.icon), 'spent': float(spent),
             'limit': float(cat.limit), 'percentage': cat.get_percentage()
         })
-    
-    # Группировка по дням для графика
+
     daily_map = {}
-    # Генерируем последние 7 дней, чтобы график не был пустым
     for i in range(7):
         d = (today - datetime.timedelta(days=i)).strftime('%b %d')
         daily_map[d] = 0
@@ -69,8 +67,7 @@ def get_dashboard_data(user):
         d_str = exp.date.strftime('%b %d')
         if d_str in daily_map:
             daily_map[d_str] += float(exp.amount)
-    
-    # Сортируем даты хронологически для Chart.js
+
     sorted_days = sorted(daily_map.keys(), key=lambda x: datetime.datetime.strptime(x, '%b %d'))
     daily_values = [daily_map[day] for day in sorted_days]
 
@@ -109,7 +106,6 @@ def seed_demo_data(request):
     user = get_demo_user()
     today = datetime.date.today()
     
-    # Создаем данные, распределенные по времени
     samples = [
         ('Starbucks', 'Food & Drinks', 15, 0),
         ('Uber', 'Transport', 45, 1),
@@ -121,7 +117,7 @@ def seed_demo_data(request):
     ]
     
     for text, cat, amt, days_ago in samples:
-        date = datetime.datetime.now() - datetime.timedelta(days=days_ago)
+        date = timezone.now() - datetime.timedelta(days=days_ago)
         Expense.objects.create(
             user=user, original_text=text, category=cat, 
             amount=Decimal(str(amt)), is_necessary=True, date=date
@@ -145,7 +141,27 @@ def update_budget_limit(request):
 
 def get_advice(request):
     user = get_demo_user()
-    advice = generate_daily_advice("Analysis of spending patterns.")
+    data = get_dashboard_data(user)
+
+    if not data['expenses']:
+        return JsonResponse({'advice': 'No expenses recorded yet. Add some transactions to get personalized insights! 💡'})
+
+    category_lines = '\n'.join(
+        f"  - {c['name']}: ${c['spent']:.2f} spent of ${c['limit']:.2f} limit ({c['percentage']}%)"
+        for c in data['categories'] if c['spent'] > 0
+    )
+    recent_lines = '\n'.join(
+        f"  - {e['text']}: ${e['amount']:.2f} ({e['cat']})"
+        for e in data['expenses'][:5]
+    )
+    summary = (
+        f"Total spent: ${data['total_spent']:.2f} of ${data['total_limit']:.2f} budget "
+        f"({data['total_percentage']}% used, ${data['total_remaining']:.2f} remaining).\n\n"
+        f"Spending by category:\n{category_lines}\n\n"
+        f"Recent transactions:\n{recent_lines}"
+    )
+
+    advice = generate_daily_advice(summary)
     return JsonResponse({'advice': advice})
 
 def delete_expense(request, pk):
