@@ -1,5 +1,6 @@
 import hashlib
 import json
+import math
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
@@ -181,6 +182,7 @@ def demo_pdf(request):
     try:
         import pypdf
         reader = pypdf.PdfReader(pdf_file)
+        num_pages = len(reader.pages)
         raw_text = '\n'.join(page.extract_text() or '' for page in reader.pages).strip()
         if not raw_text:
             return JsonResponse({'ok': False, 'error': 'Could not extract text from this PDF'})
@@ -190,11 +192,17 @@ def demo_pdf(request):
     except Exception as e:
         return JsonResponse({'ok': False, 'error': f'PDF read error: {e}'})
 
-    spp = _slides_per_part(duration, n)
+    # Distribute PDF pages fairly: each presenter gets ceil(pages/n) slides
+    spp = max(1, math.ceil(num_pages / n))
+    # If duration was given, respect word-count constraints too
+    if duration:
+        spp_from_duration = _slides_per_part(duration, n)
+        spp = max(spp, spp_from_duration)
+    total_slides = n * spp
     parts_tmpl = _build_parts_template(n, spp)
     prompt = f"""You are helping a student group create a presentation from their uploaded PDF.
 Number of presenters: {n}{_duration_hint(duration, n)}
-Slides per presenter: {spp}
+PDF pages: {num_pages} — distribute content evenly, {spp} slides per presenter ({total_slides} slides total, numbered {1}–{total_slides} continuously across ALL parts).
 
 PDF content:
 \"\"\"
@@ -204,6 +212,7 @@ PDF content:
 1. Extract key information and restructure it into a clear, engaging presentation script.
 2. Remove page numbers, headers, footnotes, and formatting artifacts.
 3. Divide into exactly {n} parts, each with exactly {spp} slides (title + speaker notes).
+4. Slide numbers must be CONTINUOUS across all parts — do NOT restart from 1 in each part.
 
 Reply in this EXACT format:
 
@@ -665,6 +674,7 @@ def upload_pdf(request, code):
     try:
         import pypdf
         reader = pypdf.PdfReader(pdf_file)
+        num_pages = len(reader.pages)
         raw_text = '\n'.join(page.extract_text() or '' for page in reader.pages).strip()
         if not raw_text:
             return JsonResponse({'ok': False, 'error': 'Could not extract text from PDF'})
@@ -680,12 +690,16 @@ def upload_pdf(request, code):
         duration = 0
 
     n = group.members.count()
-    spp = _slides_per_part(duration, n)
+    # Distribute PDF pages fairly across presenters
+    spp = max(1, math.ceil(num_pages / n))
+    if duration:
+        spp = max(spp, _slides_per_part(duration, n))
+    total_slides = n * spp
     parts_tmpl = _build_parts_template(n, spp)
 
     prompt = f"""You are helping a student group create a presentation from their uploaded PDF material.
 Number of presenters: {n}{_duration_hint(duration, n)}
-Slides per presenter: {spp}
+PDF pages: {num_pages} — distribute content evenly, {spp} slides per presenter ({total_slides} slides total, numbered {1}–{total_slides} continuously across ALL parts).
 
 PDF content:
 \"\"\"
@@ -695,6 +709,7 @@ PDF content:
 1. Extract key information and restructure into a clear, engaging script.
 2. Remove page numbers, headers, footnotes, and artifacts.
 3. Divide into exactly {n} parts, each with exactly {spp} slides (title + speaker notes).
+4. Slide numbers must be CONTINUOUS across all parts — do NOT restart from 1 in each part.
 
 Reply in this EXACT format:
 
