@@ -1,0 +1,390 @@
+{% extends 'base.html' %}
+{% block title %}Skills · VITALII.SYS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* REVEAL */
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    @keyframes glitch {
+        0%,94%,100% { clip-path:none; transform:none; }
+        95% { clip-path:inset(30% 0 50% 0); transform:translate(-3px,0); }
+        96% { clip-path:inset(60% 0 10% 0); transform:translate(3px,0); }
+        97% { clip-path:inset(10% 0 70% 0); transform:translate(-2px,0); }
+        98% { clip-path:none; transform:none; }
+    }
+    @keyframes flicker {
+        0%,19%,21%,23%,25%,54%,56%,100% { opacity:1; }
+        20%,22%,24%,55% { opacity:0.35; }
+    }
+    @keyframes bar-fill {
+        from { width: 0; }
+    }
+
+    /* WRAPPER */
+    .skills-wrapper { max-width:1140px; margin:0 auto; padding:70px 32px 100px; }
+
+    /* SECTION HEADER */
+    .skills-h1 {
+        font-family:'Orbitron',monospace;
+        font-size:3.2rem;
+        font-weight:900;
+        line-height:1.05;
+        margin-bottom:16px;
+        animation:glitch 7s infinite;
+    }
+
+    /* GRID */
+    .skills-grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(min(320px,100%), 1fr));
+        gap:24px;
+        margin-top:50px;
+    }
+
+    /* SKILL CARD */
+    .skill-card {
+        background:var(--glass);
+        border:1px solid rgba(0,229,255,0.12);
+        border-radius:18px;
+        overflow:hidden;
+        transition:0.35s cubic-bezier(0.2,1,0.3,1);
+    }
+    .skill-card:hover {
+        transform:translateY(-6px);
+        border-color:var(--card-accent, var(--cyan));
+        box-shadow:0 0 28px var(--card-glow, var(--cyan-glow)), inset 0 0 20px rgba(0,229,255,0.03);
+    }
+    .skill-card-stripe {
+        height:3px;
+        background:linear-gradient(90deg, transparent, var(--card-accent, var(--cyan)), transparent);
+        box-shadow:0 0 10px var(--card-glow, var(--cyan-glow));
+    }
+    .skill-card-body { padding:28px 28px 24px; }
+
+    /* CATEGORY LABEL */
+    .skill-category {
+        font-family:'Orbitron',monospace;
+        font-size:0.62rem;
+        font-weight:700;
+        letter-spacing:0.3em;
+        color:var(--card-accent, var(--cyan));
+        text-shadow:0 0 8px var(--card-glow, var(--cyan-glow));
+        margin-bottom:18px;
+        display:flex;
+        align-items:center;
+        gap:8px;
+    }
+    .skill-category::before {
+        content:'';
+        display:inline-block;
+        width:20px; height:1px;
+        background:var(--card-accent, var(--cyan));
+        box-shadow:0 0 6px var(--card-glow, var(--cyan-glow));
+    }
+
+    /* SKILL ITEM */
+    .skill-item { margin-bottom:16px; }
+    .skill-item:last-child { margin-bottom:0; }
+    .skill-row {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:7px;
+    }
+    .skill-name {
+        font-family:'JetBrains Mono',monospace;
+        font-size:0.8rem;
+        color:rgba(255,255,255,0.82);
+    }
+    .skill-pct {
+        font-family:'JetBrains Mono',monospace;
+        font-size:0.7rem;
+        color:var(--card-accent, var(--cyan));
+        opacity:0.75;
+    }
+    .skill-bar-bg {
+        width:100%;
+        height:4px;
+        background:rgba(255,255,255,0.06);
+        border-radius:4px;
+        overflow:hidden;
+    }
+    .skill-bar-fill {
+        height:100%;
+        border-radius:4px;
+        background:var(--card-accent, var(--cyan));
+        box-shadow:0 0 8px var(--card-glow, var(--cyan-glow));
+        animation:bar-fill 1s ease forwards;
+        animation-play-state:paused;
+    }
+    .skill-card.visible .skill-bar-fill { animation-play-state:running; }
+
+    /* CERT BADGES */
+    .cert-grid {
+        display:flex;
+        flex-wrap:wrap;
+        gap:12px;
+        margin-top:50px;
+    }
+    .cert-badge {
+        font-family:'JetBrains Mono',monospace;
+        font-size:0.72rem;
+        padding:9px 16px;
+        border-radius:10px;
+        border:1px solid;
+        transition:0.25s;
+        display:flex;
+        align-items:center;
+        gap:7px;
+    }
+    .cert-badge:hover { transform:translateY(-2px); }
+
+    /* RESPONSIVE */
+    @media (max-width:768px) {
+        .skills-wrapper { padding:40px 20px 60px !important; }
+        .skills-h1 { font-size:2.2rem !important; }
+    }
+    @media (max-width:480px) {
+        .skills-h1 { font-size:1.8rem !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="skills-wrapper">
+
+    <!-- Header -->
+    <div class="reveal">
+        <div style="font-family:'Orbitron',monospace; font-size:0.72rem; font-weight:700; letter-spacing:0.45em; color:var(--purple); text-shadow:0 0 12px var(--purple); margin-bottom:22px; animation:flicker 8s infinite;">
+            ▸ SKILL_MATRIX
+        </div>
+        <h1 class="skills-h1">
+            <span style="background:linear-gradient(90deg,var(--purple),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 14px var(--purple-glow));">
+                TECH STACK
+            </span>
+        </h1>
+        <p style="font-family:'Exo 2',sans-serif; color:rgba(255,255,255,0.5); font-size:1.05rem; line-height:1.7; max-width:560px; margin-bottom:0;">
+            6+ years building across the full stack — from React frontends and Django APIs to cybersecurity and AI integrations.
+        </p>
+    </div>
+
+    <!-- Skills grid -->
+    <div class="skills-grid">
+
+        <!-- Languages -->
+        <div class="skill-card reveal" style="--card-accent:var(--cyan); --card-glow:var(--cyan-glow);">
+            <div class="skill-card-stripe"></div>
+            <div class="skill-card-body">
+                <div class="skill-category">LANGUAGES</div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Python</span><span class="skill-pct">92%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:92%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">JavaScript</span><span class="skill-pct">88%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:88%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">TypeScript</span><span class="skill-pct">82%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:82%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">C#</span><span class="skill-pct">76%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:76%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">HTML / CSS</span><span class="skill-pct">95%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:95%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">SQL</span><span class="skill-pct">80%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:80%;"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frameworks & Libraries -->
+        <div class="skill-card reveal" style="--card-accent:var(--pink); --card-glow:var(--pink-glow);">
+            <div class="skill-card-stripe"></div>
+            <div class="skill-card-body">
+                <div class="skill-category" style="color:var(--pink); text-shadow:0 0 8px var(--pink-glow);">FRAMEWORKS &amp; LIBRARIES</div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Django</span><span class="skill-pct" style="color:var(--pink);">90%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:90%; background:var(--pink); box-shadow:0 0 8px var(--pink-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">React</span><span class="skill-pct" style="color:var(--pink);">86%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:86%; background:var(--pink); box-shadow:0 0 8px var(--pink-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Django REST Framework</span><span class="skill-pct" style="color:var(--pink);">84%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:84%; background:var(--pink); box-shadow:0 0 8px var(--pink-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Chart.js</span><span class="skill-pct" style="color:var(--pink);">78%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:78%; background:var(--pink); box-shadow:0 0 8px var(--pink-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Bootstrap</span><span class="skill-pct" style="color:var(--pink);">82%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:82%; background:var(--pink); box-shadow:0 0 8px var(--pink-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">jQuery</span><span class="skill-pct" style="color:var(--pink);">75%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%; background:var(--pink); box-shadow:0 0 8px var(--pink-glow);"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI & APIs -->
+        <div class="skill-card reveal" style="--card-accent:var(--purple); --card-glow:var(--purple-glow);">
+            <div class="skill-card-stripe"></div>
+            <div class="skill-card-body">
+                <div class="skill-category" style="color:var(--purple); text-shadow:0 0 8px var(--purple-glow);">AI &amp; APIs</div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Google Gemini AI</span><span class="skill-pct" style="color:var(--purple);">87%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:87%; background:var(--purple); box-shadow:0 0 8px var(--purple-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">OpenAI API</span><span class="skill-pct" style="color:var(--purple);">80%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:80%; background:var(--purple); box-shadow:0 0 8px var(--purple-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">REST API Design</span><span class="skill-pct" style="color:var(--purple);">90%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:90%; background:var(--purple); box-shadow:0 0 8px var(--purple-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">WebSocket / Real-time</span><span class="skill-pct" style="color:var(--purple);">74%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:74%; background:var(--purple); box-shadow:0 0 8px var(--purple-glow);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">NLP Concepts</span><span class="skill-pct" style="color:var(--purple);">70%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:70%; background:var(--purple); box-shadow:0 0 8px var(--purple-glow);"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools & DevOps -->
+        <div class="skill-card reveal" style="--card-accent:var(--orange); --card-glow:rgba(255,140,0,0.45);">
+            <div class="skill-card-stripe"></div>
+            <div class="skill-card-body">
+                <div class="skill-category" style="color:var(--orange); text-shadow:0 0 8px rgba(255,140,0,0.6);">TOOLS &amp; DEVOPS</div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Git / GitHub</span><span class="skill-pct" style="color:var(--orange);">92%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:92%; background:var(--orange); box-shadow:0 0 8px rgba(255,140,0,0.45);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Docker</span><span class="skill-pct" style="color:var(--orange);">72%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:72%; background:var(--orange); box-shadow:0 0 8px rgba(255,140,0,0.45);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Linux / Bash</span><span class="skill-pct" style="color:var(--orange);">74%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:74%; background:var(--orange); box-shadow:0 0 8px rgba(255,140,0,0.45);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Jira / Agile</span><span class="skill-pct" style="color:var(--orange);">85%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:85%; background:var(--orange); box-shadow:0 0 8px rgba(255,140,0,0.45);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Gunicorn / WhiteNoise</span><span class="skill-pct" style="color:var(--orange);">70%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:70%; background:var(--orange); box-shadow:0 0 8px rgba(255,140,0,0.45);"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Databases -->
+        <div class="skill-card reveal" style="--card-accent:#4ade80; --card-glow:rgba(74,222,128,0.4);">
+            <div class="skill-card-stripe"></div>
+            <div class="skill-card-body">
+                <div class="skill-category" style="color:#4ade80; text-shadow:0 0 8px rgba(74,222,128,0.5);">DATABASES</div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">PostgreSQL</span><span class="skill-pct" style="color:#4ade80;">80%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:80%; background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,0.4);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">SQLite</span><span class="skill-pct" style="color:#4ade80;">90%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:90%; background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,0.4);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Django ORM</span><span class="skill-pct" style="color:#4ade80;">88%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:88%; background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,0.4);"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">SQL Queries / Aggregation</span><span class="skill-pct" style="color:#4ade80;">82%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:82%; background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,0.4);"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cybersecurity -->
+        <div class="skill-card reveal" style="--card-accent:var(--cyan); --card-glow:var(--cyan-glow);">
+            <div class="skill-card-stripe"></div>
+            <div class="skill-card-body">
+                <div class="skill-category">CYBERSECURITY · MSIS</div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Network Security</span><span class="skill-pct">76%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:76%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Cryptography</span><span class="skill-pct">70%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:70%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Threat Modeling</span><span class="skill-pct">72%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:72%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Penetration Testing</span><span class="skill-pct">65%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:65%;"></div></div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-row"><span class="skill-name">Secure Code Review</span><span class="skill-pct">74%</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:74%;"></div></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Certifications & Education -->
+    <div class="reveal" style="margin-top:64px;">
+        <div style="font-family:'Orbitron',monospace; font-size:0.62rem; font-weight:700; letter-spacing:0.3em; color:var(--cyan); text-shadow:0 0 8px var(--cyan-glow); margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; width:20px; height:1px; background:var(--cyan); box-shadow:0 0 6px var(--cyan-glow);"></span>
+            CERTIFICATIONS &amp; EDUCATION
+        </div>
+        <div class="cert-grid">
+            <div class="cert-badge" style="border-color:rgba(0,229,255,0.35); color:var(--cyan);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9.5 16l-3 5h11l-3-5"/></svg>
+                MSIS Cybersecurity · Baylor University
+            </div>
+            <div class="cert-badge" style="border-color:rgba(255,140,0,0.35); color:var(--orange);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+                AWS Cloud Practitioner · In Progress
+            </div>
+            <a href="https://certs.duolingo.com/bh5jk4memr5r3s24" target="_blank" rel="noopener"
+               class="cert-badge" style="border-color:rgba(74,222,128,0.35); color:#4ade80; text-decoration:none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Duolingo English Certificate ↗
+            </a>
+            <div class="cert-badge" style="border-color:rgba(180,79,255,0.35); color:var(--purple);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9.5 16l-3 5h11l-3-5"/></svg>
+                BE Software Engineering · Baranovichi State University
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 100);
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+{% endblock %}

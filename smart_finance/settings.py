@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.core',
     'apps.expense_tracker',
+    'apps.group_collab',
 ]
 
 MIDDLEWARE = [

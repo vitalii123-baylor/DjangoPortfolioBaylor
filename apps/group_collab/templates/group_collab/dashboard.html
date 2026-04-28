@@ -1,0 +1,658 @@
+{% extends 'base.html' %}
+{% block title %}{{ group.name }} · TeamHub{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes flicker{0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}20%,22%,24%,55%{opacity:.35}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse-dot{0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+    .dash-wrap { max-width:1100px; margin:0 auto; padding:40px 32px 100px; }
+
+    /* ── HEADER ── */
+    .dash-header {
+        display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+        gap:16px; margin-bottom:36px; padding:24px 28px;
+        background:var(--glass); border:1px solid rgba(0,229,255,.15); border-radius:16px;
+    }
+    .dash-name { font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:900; }
+    .dash-code {
+        font-family:'JetBrains Mono',monospace; font-size:.85rem;
+        color:var(--cyan); background:rgba(0,229,255,.07); border:1px solid rgba(0,229,255,.25);
+        padding:6px 14px; border-radius:8px; display:flex; align-items:center; gap:10px; cursor:pointer;
+        transition:.25s; user-select:all;
+    }
+    .dash-code:hover { background:rgba(0,229,255,.12); box-shadow:0 0 12px var(--cyan-glow); }
+    .copy-icon { width:14px; height:14px; opacity:.6; flex-shrink:0; }
+    .dash-actions { display:flex; gap:10px; }
+    .btn-sm {
+        font-family:'Orbitron',monospace; font-size:.65rem; font-weight:700; letter-spacing:.08em;
+        padding:8px 16px; border-radius:9px; border:1px solid; cursor:pointer; transition:.25s; background:transparent;
+    }
+    .btn-sm.danger { color:var(--pink); border-color:rgba(255,45,120,.4); }
+    .btn-sm.danger:hover { background:rgba(255,45,120,.1); box-shadow:0 0 12px var(--pink-glow); color:#fff; }
+    .live-dot {
+        width:7px; height:7px; background:#4ade80; border-radius:50%;
+        box-shadow:0 0 6px rgba(74,222,128,.7); animation:pulse-dot 2s ease-in-out infinite; flex-shrink:0;
+    }
+
+    /* ── TABS ── */
+    .tabs { display:flex; gap:4px; margin-bottom:28px; background:rgba(255,255,255,.03); border-radius:12px; padding:5px; border:1px solid rgba(255,255,255,.07); width:fit-content; }
+    .tab-btn {
+        font-family:'Orbitron',monospace; font-size:.68rem; font-weight:700; letter-spacing:.1em;
+        padding:10px 22px; border-radius:9px; border:none; background:transparent; color:rgba(255,255,255,.45);
+        cursor:pointer; transition:.25s; white-space:nowrap;
+    }
+    .tab-btn.active { background:rgba(0,229,255,.1); color:var(--cyan); box-shadow:0 0 12px var(--cyan-glow); }
+    .tab-btn:hover:not(.active) { color:rgba(255,255,255,.75); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* ── SECTION LABEL ── */
+    .sec-label {
+        font-family:'Orbitron',monospace; font-size:.62rem; font-weight:700; letter-spacing:.3em;
+        display:flex; align-items:center; gap:8px; margin-bottom:20px;
+    }
+    .sec-label::before { content:''; display:inline-block; width:18px; height:1px; background:currentColor; box-shadow:0 0 5px currentColor; }
+
+    /* ── MEMBER CARDS ── */
+    .members-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr)); gap:14px; margin-bottom:28px; }
+    .member-card {
+        background:var(--glass); border:1px solid rgba(255,255,255,.09); border-radius:14px;
+        padding:18px 18px 14px; transition:.3s; position:relative;
+    }
+    .member-card.is-me { border-color:rgba(0,229,255,.3); }
+    .member-card:hover { transform:translateY(-3px); border-color:rgba(255,255,255,.2); }
+    .mc-top { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .mc-avatar {
+        width:38px; height:38px; border-radius:10px;
+        background:rgba(0,229,255,.08); border:1px solid rgba(0,229,255,.2);
+        display:flex; align-items:center; justify-content:center;
+        font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; color:var(--cyan); flex-shrink:0;
+    }
+    .mc-nick { font-family:'Exo 2',sans-serif; font-weight:700; font-size:.98rem; }
+    .mc-you  { font-family:'JetBrains Mono',monospace; font-size:.6rem; color:var(--cyan); opacity:.6; }
+    .crown { font-size:.9rem; margin-left:4px; }
+    .role-badge {
+        font-family:'JetBrains Mono',monospace; font-size:.6rem; padding:3px 10px;
+        border-radius:6px; border:1px solid rgba(180,79,255,.3); color:var(--purple); width:fit-content;
+    }
+    .role-select {
+        font-family:'JetBrains Mono',monospace; font-size:.65rem; background:rgba(255,255,255,.04);
+        border:1px solid rgba(255,255,255,.12); border-radius:7px; color:#fff; padding:4px 8px;
+        cursor:pointer; width:100%; margin-top:8px; outline:none;
+    }
+    .btn-kick {
+        position:absolute; top:10px; right:10px; font-size:.65rem; padding:3px 8px;
+        border:1px solid rgba(255,45,120,.3); color:rgba(255,45,120,.7); background:transparent;
+        border-radius:6px; cursor:pointer; transition:.2s; font-family:'JetBrains Mono',monospace;
+    }
+    .btn-kick:hover { background:rgba(255,45,120,.1); color:var(--pink); }
+
+    /* capacity bar */
+    .cap-bar-bg { width:100%; height:4px; background:rgba(255,255,255,.06); border-radius:4px; overflow:hidden; margin-top:4px; }
+    .cap-bar-fill { height:100%; background:var(--cyan); border-radius:4px; box-shadow:0 0 6px var(--cyan-glow); transition:width .4s; }
+
+    /* max-members editor */
+    .max-editor { display:flex; align-items:center; gap:10px; margin-bottom:24px; }
+    .max-editor input { width:64px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:7px 10px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:.85rem; text-align:center; outline:none; }
+    .max-editor input:focus { border-color:var(--cyan); }
+
+    /* ── VOTING ── */
+    .vote-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr)); gap:14px; margin-bottom:28px; }
+    .vote-card {
+        background:var(--glass); border:1px solid rgba(255,255,255,.09); border-radius:14px;
+        padding:20px; text-align:center; cursor:pointer; transition:.3s;
+    }
+    .vote-card:hover:not(.voted-for):not(.self-card) { border-color:var(--cyan); box-shadow:0 0 16px var(--cyan-glow); transform:translateY(-4px); }
+    .vote-card.voted-for { border-color:var(--cyan); box-shadow:0 0 20px var(--cyan-glow); background:rgba(0,229,255,.06); }
+    .vote-card.self-card { opacity:.45; cursor:not-allowed; }
+    .vc-nick { font-family:'Exo 2',sans-serif; font-weight:700; font-size:1rem; margin-bottom:8px; }
+    .vc-count { font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--cyan); opacity:.7; margin-bottom:8px; }
+    .vc-bar-bg { width:100%; height:3px; background:rgba(255,255,255,.06); border-radius:3px; overflow:hidden; }
+    .vc-bar-fill { height:100%; background:var(--cyan); border-radius:3px; box-shadow:0 0 6px var(--cyan-glow); transition:width .5s; }
+    .vote-closed-msg { font-family:'Exo 2',sans-serif; color:rgba(255,255,255,.45); font-size:.9rem; line-height:1.7; }
+    .vote-action-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .btn-vote-action {
+        font-family:'Orbitron',monospace; font-size:.7rem; font-weight:700; letter-spacing:.08em;
+        padding:11px 22px; border-radius:10px; border:1px solid; cursor:pointer; transition:.3s; background:transparent;
+    }
+
+    /* ── AI STUDIO ── */
+    .ai-mode-row { display:flex; gap:8px; margin-bottom:24px; }
+    .ai-mode-btn {
+        font-family:'Orbitron',monospace; font-size:.68rem; font-weight:700; letter-spacing:.08em;
+        padding:9px 20px; border-radius:9px; border:1px solid rgba(180,79,255,.3);
+        color:rgba(255,255,255,.45); cursor:pointer; transition:.25s; background:transparent;
+    }
+    .ai-mode-btn.active { background:rgba(180,79,255,.1); color:var(--purple); border-color:var(--purple); box-shadow:0 0 10px var(--purple-glow); }
+    .ai-panel { display:none; }
+    .ai-panel.active { display:block; }
+    .ai-textarea {
+        width:100%; min-height:110px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+        border-radius:12px; padding:14px 16px; color:#fff; font-family:'Exo 2',sans-serif; font-size:.95rem;
+        outline:none; resize:vertical; transition:.25s; line-height:1.6;
+    }
+    .ai-textarea:focus { border-color:var(--purple); box-shadow:0 0 12px var(--purple-glow); }
+    .ai-textarea::placeholder { color:rgba(255,255,255,.25); }
+    .btn-ai {
+        margin-top:14px; padding:13px 28px; background:transparent; border:1px solid var(--purple);
+        color:var(--purple); border-radius:11px; font-family:'Orbitron',monospace; font-weight:700;
+        font-size:.75rem; letter-spacing:.1em; cursor:pointer; transition:.3s; box-shadow:0 0 10px var(--purple-glow);
+    }
+    .btn-ai:hover { background:rgba(180,79,255,.1); box-shadow:0 0 22px var(--purple); color:#fff; }
+    .btn-ai:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* pdf upload */
+    .pdf-drop {
+        border:2px dashed rgba(0,229,255,.2); border-radius:14px; padding:36px 20px; text-align:center;
+        cursor:pointer; transition:.3s; background:rgba(0,229,255,.02);
+    }
+    .pdf-drop:hover,.pdf-drop.drag-over { border-color:var(--cyan); background:rgba(0,229,255,.05); }
+    .pdf-drop-icon { font-size:2.2rem; margin-bottom:10px; }
+    .pdf-drop-text { font-family:'Exo 2',sans-serif; color:rgba(255,255,255,.45); font-size:.9rem; }
+    .pdf-drop-text span { color:var(--cyan); }
+    #pdfFileInput { display:none; }
+    .pdf-chosen { font-family:'JetBrains Mono',monospace; font-size:.75rem; color:var(--cyan); margin-top:8px; }
+
+    /* loading spinner */
+    .ai-spinner { display:none; align-items:center; gap:12px; margin-top:18px; color:rgba(255,255,255,.5); font-family:'Exo 2',sans-serif; font-size:.9rem; }
+    .ai-spinner.show { display:flex; }
+    .spinner-ring { width:20px; height:20px; border:2px solid rgba(180,79,255,.3); border-top-color:var(--purple); border-radius:50%; animation:spin .8s linear infinite; flex-shrink:0; }
+
+    /* results */
+    .pres-result { margin-top:32px; }
+    .full-text-toggle {
+        font-family:'JetBrains Mono',monospace; font-size:.72rem; color:rgba(255,255,255,.45);
+        background:var(--glass); border:1px solid rgba(255,255,255,.08); border-radius:9px;
+        padding:8px 16px; cursor:pointer; transition:.2s; margin-bottom:18px; display:inline-block;
+    }
+    .full-text-toggle:hover { color:#fff; border-color:rgba(255,255,255,.2); }
+    .full-text-box {
+        display:none; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+        border-radius:12px; padding:20px; font-family:'Exo 2',sans-serif; font-size:.9rem;
+        color:rgba(255,255,255,.65); line-height:1.8; white-space:pre-wrap; max-height:320px;
+        overflow-y:auto; margin-bottom:24px;
+    }
+    .parts-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr)); gap:18px; }
+    .part-card {
+        background:var(--glass); border:1px solid rgba(0,229,255,.12); border-radius:16px;
+        overflow:hidden; display:flex; flex-direction:column;
+    }
+    .part-stripe { height:3px; background:linear-gradient(90deg,transparent,var(--cyan),transparent); box-shadow:0 0 8px var(--cyan-glow); }
+    .part-body { padding:22px; display:flex; flex-direction:column; gap:14px; flex:1; }
+    .part-header { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+    .part-num { font-family:'Orbitron',monospace; font-size:.62rem; font-weight:700; letter-spacing:.2em; color:var(--cyan); }
+    .part-member { font-family:'Exo 2',sans-serif; font-weight:700; font-size:.95rem; }
+    .part-text { font-family:'Exo 2',sans-serif; font-size:.9rem; color:rgba(255,255,255,.65); line-height:1.75; flex:1; white-space:pre-wrap; }
+    .part-notes { width:100%; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:9px; padding:10px 14px; color:#fff; font-family:'Exo 2',sans-serif; font-size:.85rem; resize:none; outline:none; transition:.2s; }
+    .part-notes:focus { border-color:rgba(180,79,255,.4); }
+    .part-notes::placeholder { color:rgba(255,255,255,.2); }
+    .btn-copy {
+        font-family:'JetBrains Mono',monospace; font-size:.65rem; padding:7px 14px;
+        border:1px solid rgba(0,229,255,.3); color:var(--cyan); background:transparent;
+        border-radius:7px; cursor:pointer; transition:.2s; white-space:nowrap;
+    }
+    .btn-copy:hover { background:rgba(0,229,255,.08); }
+    .btn-copy.copied { color:#4ade80; border-color:rgba(74,222,128,.4); }
+
+    /* toast */
+    #toast {
+        position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px);
+        background:rgba(7,2,15,.95); border:1px solid rgba(0,229,255,.3); border-radius:12px;
+        padding:12px 24px; font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--cyan);
+        box-shadow:0 0 20px var(--cyan-glow); z-index:9999; transition:transform .35s ease;
+        white-space:nowrap;
+    }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+
+    /* demo chips */
+    .demo-chip {
+        font-family:'JetBrains Mono',monospace; font-size:.65rem;
+        padding:5px 12px; border-radius:8px; border:1px solid rgba(180,79,255,.3);
+        color:rgba(180,79,255,.8); background:transparent; cursor:pointer; transition:.2s;
+    }
+    .demo-chip:hover { background:rgba(180,79,255,.1); color:var(--purple); border-color:var(--purple); }
+
+    @media(max-width:640px){
+        .dash-wrap{padding:24px 16px 80px}
+        .dash-header{padding:18px}
+        .tabs{width:100%; overflow-x:auto}
+        .dash-name{font-size:1.1rem}
+        .ai-mode-row{flex-wrap:wrap}
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-wrap">
+
+    <!-- Header -->
+    <div class="dash-header">
+        <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.35);letter-spacing:.2em;margin-bottom:6px">GROUP</div>
+            <div class="dash-name">{{ group.name }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="live-dot" title="Live"></div>
+            <div class="dash-code" id="codeDisplay" onclick="copyCode()" title="Click to copy code">
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                {{ group.code }}
+            </div>
+            <div class="dash-actions">
+                <a href="{% url 'group_collab:leave' group.code %}" class="btn-sm danger" onclick="return confirm('Leave this group?')">Leave ↩</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('team')">👥 Team</button>
+        <button class="tab-btn" onclick="switchTab('vote')">🗳️ Vote</button>
+        <button class="tab-btn" onclick="switchTab('ai')">🤖 AI Studio</button>
+    </div>
+
+    <!-- ═══════════════════ TAB: TEAM ═══════════════════ -->
+    <div class="tab-pane active" id="tab-team">
+
+        <div class="sec-label" style="color:var(--cyan)">MEMBERS
+            <span id="memberCountBadge" style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:rgba(255,255,255,.4)">
+                {{ group.members.count }}/{{ group.max_members }}
+            </span>
+        </div>
+
+        <!-- capacity bar -->
+        <div class="cap-bar-bg" style="max-width:240px;margin-bottom:24px">
+            <div class="cap-bar-fill" id="capBar" style="width:{% widthratio group.members.count group.max_members 100 %}%"></div>
+        </div>
+
+        <!-- member cards -->
+        <div class="members-grid" id="membersGrid">
+            {% for m in members %}
+            <div class="member-card {% if m.id == me.id %}is-me{% endif %}" data-mid="{{ m.id }}">
+                {% if me.is_leader and m.id != me.id %}
+                <button class="btn-kick" onclick="kickMember({{ m.id }}, '{{ m.nickname }}')">✕</button>
+                {% endif %}
+                <div class="mc-top">
+                    <div class="mc-avatar">{{ m.nickname|first|upper }}</div>
+                    <div>
+                        <div class="mc-nick">
+                            {{ m.nickname }}
+                            {% if m.is_leader %}<span class="crown">👑</span>{% endif %}
+                        </div>
+                        {% if m.id == me.id %}<div class="mc-you">YOU</div>{% endif %}
+                    </div>
+                </div>
+                <div class="role-badge">{{ m.get_role_display }}</div>
+                {% if me.is_leader and m.id != me.id %}
+                <select class="role-select" onchange="updateRole({{ m.id }}, this.value)">
+                    {% for rkey, rname in roles %}
+                    <option value="{{ rkey }}" {% if m.role == rkey %}selected{% endif %}>{{ rname }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Max members (leader only) -->
+        {% if me.is_leader %}
+        <div class="sec-label" style="color:var(--orange);margin-top:8px">GROUP SETTINGS</div>
+        <div class="max-editor">
+            <span style="font-family:'Exo 2',sans-serif;color:rgba(255,255,255,.5);font-size:.9rem">Max members:</span>
+            <input type="number" id="maxMembersInput" value="{{ group.max_members }}" min="{{ group.members.count }}" max="20">
+            <button class="btn-sm" style="color:var(--orange);border-color:rgba(255,140,0,.4)" onclick="saveMaxMembers()">Save</button>
+        </div>
+        {% endif %}
+
+        <!-- Share invite -->
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px;margin-top:8px">
+            <div style="font-family:'Orbitron',monospace;font-size:.62rem;color:rgba(255,255,255,.35);letter-spacing:.2em;margin-bottom:10px">▸ INVITE LINK</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <code style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--cyan);word-break:break-all" id="inviteUrl">{{ request.build_absolute_uri }}join/</code>
+                <button class="btn-copy" onclick="copyInvite()">Copy</button>
+            </div>
+            <div style="font-family:'Exo 2',sans-serif;font-size:.8rem;color:rgba(255,255,255,.3);margin-top:8px">Share this link + code <strong style="color:var(--cyan)">{{ group.code }}</strong> with your team</div>
+        </div>
+
+    </div>
+
+    <!-- ═══════════════════ TAB: VOTE ═══════════════════ -->
+    <div class="tab-pane" id="tab-vote">
+
+        {% if group.voting_open %}
+        <div class="sec-label" style="color:var(--pink)">VOTE FOR LEADER
+            <span style="font-family:'Exo 2',sans-serif;font-size:.75rem;color:rgba(255,255,255,.35);letter-spacing:0;font-style:italic">anonymous · results visible to all</span>
+        </div>
+
+        <div class="vote-grid" id="voteGrid">
+            {% for m in members %}
+            <div class="vote-card {% if m.id == me.id %}self-card{% endif %} {% if my_vote == m.id %}voted-for{% endif %}"
+                 id="vcard-{{ m.id }}"
+                 {% if m.id != me.id %}onclick="castVote({{ m.id }})"{% endif %}>
+                <div class="vc-nick">
+                    {{ m.nickname }}
+                    {% if m.is_leader %}<span style="font-size:.8rem">👑</span>{% endif %}
+                </div>
+                <div class="vc-count" id="vcount-{{ m.id }}">{{ vote_counts|default_if_none:"0" }} votes</div>
+                <div class="vc-bar-bg"><div class="vc-bar-fill" id="vbar-{{ m.id }}" style="width:0%"></div></div>
+                {% if m.id == me.id %}<div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.3);margin-top:8px">YOU</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if me.is_leader %}
+        <div class="vote-action-row">
+            <button class="btn-vote-action" style="color:var(--pink);border-color:rgba(255,45,120,.4)" onclick="closeVoting()">
+                Close Voting &amp; Assign Leader
+            </button>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div style="padding:40px 0;text-align:center">
+            <div style="font-size:2.5rem;margin-bottom:16px">🗳️</div>
+            <div class="vote-closed-msg" style="margin-bottom:8px">
+                {% if group.members.filter %}
+                Current leader: <strong style="color:var(--cyan)">{% for m in members %}{% if m.is_leader %}{{ m.nickname }}{% endif %}{% endfor %}</strong>
+                {% endif %}
+            </div>
+            <div class="vote-closed-msg">Voting is currently closed.</div>
+            {% if me.is_leader %}
+            <div class="vote-action-row" style="justify-content:center;margin-top:24px">
+                <button class="btn-vote-action" style="color:var(--cyan);border-color:rgba(0,229,255,.4)" onclick="openVoting()">
+                    Start New Vote ↗
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- ═══════════════════ TAB: AI STUDIO ═══════════════════ -->
+    <div class="tab-pane" id="tab-ai">
+
+        <div class="sec-label" style="color:var(--purple)">AI PRESENTATION STUDIO</div>
+
+        <!-- Mode toggle -->
+        <div class="ai-mode-row">
+            <button class="ai-mode-btn active" id="modeTopicBtn" onclick="setAiMode('topic')">✍️ From Topic</button>
+            <button class="ai-mode-btn" id="modePdfBtn" onclick="setAiMode('pdf')">📄 From PDF</button>
+        </div>
+
+        <!-- Panel: Topic -->
+        <div class="ai-panel active" id="panelTopic">
+            <label style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:rgba(255,255,255,.45);display:block;margin-bottom:8px">Presentation topic or title</label>
+            <textarea class="ai-textarea" id="topicInput" placeholder="e.g. The impact of artificial intelligence on modern healthcare systems…"></textarea>
+            <!-- Demo chips -->
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;margin-bottom:4px">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:rgba(255,255,255,.3)">Quick demo:</span>
+                {% for demo in demo_topics %}
+                <button class="demo-chip" onclick="setDemoTopic(this)">{{ demo }}</button>
+                {% endfor %}
+            </div>
+            <button class="btn-ai" id="btnGenerate" onclick="generatePresentation()">Generate &amp; Split ↗</button>
+        </div>
+
+        <!-- Panel: PDF -->
+        <div class="ai-panel" id="panelPdf">
+            <div class="pdf-drop" id="pdfDrop" onclick="document.getElementById('pdfFileInput').click()"
+                 ondragover="event.preventDefault();this.classList.add('drag-over')"
+                 ondragleave="this.classList.remove('drag-over')"
+                 ondrop="handleDrop(event)">
+                <div class="pdf-drop-icon">📄</div>
+                <div class="pdf-drop-text">Drop your PDF here or <span>click to browse</span></div>
+                <div class="pdf-drop-text" style="font-size:.78rem;margin-top:4px">Only .pdf files · max 20 MB</div>
+                <div class="pdf-chosen" id="pdfChosen"></div>
+            </div>
+            <input type="file" id="pdfFileInput" accept=".pdf" onchange="onPdfChosen(this)">
+            <button class="btn-ai" id="btnUpload" onclick="uploadPdf()" style="margin-top:18px">Process PDF &amp; Split ↗</button>
+        </div>
+
+        <!-- Spinner -->
+        <div class="ai-spinner" id="aiSpinner">
+            <div class="spinner-ring"></div>
+            <span id="spinnerText">Generating presentation…</span>
+        </div>
+
+        <!-- Error -->
+        <div id="aiError" style="display:none;margin-top:16px;font-family:'Exo 2',sans-serif;color:var(--pink);font-size:.9rem;padding:12px 16px;background:rgba(255,45,120,.05);border:1px solid rgba(255,45,120,.2);border-radius:10px"></div>
+
+        <!-- Results -->
+        <div class="pres-result" id="presResult" style="display:none">
+            <div style="font-family:'Orbitron',monospace;font-size:.62rem;font-weight:700;letter-spacing:.3em;color:var(--purple);text-shadow:0 0 8px var(--purple-glow);display:flex;align-items:center;gap:8px;margin-bottom:20px">
+                <span style="display:inline-block;width:18px;height:1px;background:var(--purple);box-shadow:0 0 5px var(--purple-glow)"></span>
+                RESULT
+                <button class="full-text-toggle" onclick="toggleFullText()" style="margin-left:auto">Show full script ▾</button>
+            </div>
+            <div class="full-text-box" id="fullTextBox"></div>
+            <div class="parts-grid" id="partsGrid"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+const GROUP_CODE = '{{ group.code }}';
+const MY_ID = {{ me.id }};
+const IS_LEADER = {{ me.is_leader|yesno:"true,false" }};
+let voteCounts = {{ vote_counts|safe }};
+let totalMembers = {{ group.members.count }};
+let pdfFile = null;
+
+function csrfToken() {
+    const c = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='));
+    return c ? c.trim().split('=')[1] : '';
+}
+async function api(url, method='POST', body=null) {
+    const opts = { method, headers:{'X-CSRFToken':csrfToken()} };
+    if (body) { opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
+    const r = await fetch(url, opts);
+    return r.json();
+}
+function toast(msg, color='var(--cyan)') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.color = color;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+/* ── TABS ── */
+function switchTab(name) {
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+/* ── COPY ── */
+function copyCode() {
+    navigator.clipboard.writeText(GROUP_CODE).then(()=>toast('Code copied: '+GROUP_CODE));
+}
+function copyInvite() {
+    const url = window.location.origin + '/teamhub/';
+    navigator.clipboard.writeText(url + ' · Code: ' + GROUP_CODE).then(()=>toast('Invite copied!'));
+}
+
+/* ── MEMBERS ── */
+async function kickMember(id, nick) {
+    if (!confirm('Remove '+nick+' from the group?')) return;
+    const r = await api(`/teamhub/${GROUP_CODE}/kick/${id}/`);
+    if (r.ok) { document.querySelector(`[data-mid="${id}"]`)?.remove(); toast(nick+' removed'); }
+    else toast(r.error || 'Error', 'var(--pink)');
+}
+async function updateRole(memberId, role) {
+    const r = await api(`/teamhub/${GROUP_CODE}/role/${memberId}/`, 'POST', {role});
+    if (!r.ok) toast('Failed to update role', 'var(--pink)');
+    else toast('Role updated');
+}
+async function saveMaxMembers() {
+    const v = parseInt(document.getElementById('maxMembersInput').value);
+    const r = await api(`/teamhub/${GROUP_CODE}/update/`, 'POST', {max_members:v});
+    if (r.ok) toast('Max members updated to '+r.max_members);
+    else toast('Error', 'var(--pink)');
+}
+
+/* ── VOTING ── */
+async function castVote(candidateId) {
+    const r = await api(`/teamhub/${GROUP_CODE}/vote/`, 'POST', {candidate_id:candidateId});
+    if (r.ok) {
+        voteCounts = r.counts;
+        updateVoteBars();
+        document.querySelectorAll('.vote-card').forEach(c=>c.classList.remove('voted-for'));
+        document.getElementById('vcard-'+candidateId)?.classList.add('voted-for');
+        toast('Vote cast ✓');
+    } else toast(r.error||'Error','var(--pink)');
+}
+function updateVoteBars() {
+    const maxV = Math.max(1, ...Object.values(voteCounts));
+    document.querySelectorAll('.vote-card').forEach(card=>{
+        const mid = parseInt(card.id.replace('vcard-',''));
+        const cnt = voteCounts[mid]||0;
+        const el = document.getElementById('vcount-'+mid);
+        const bar = document.getElementById('vbar-'+mid);
+        if(el) el.textContent = cnt+' vote'+(cnt!==1?'s':'');
+        if(bar) bar.style.width = (cnt/maxV*100)+'%';
+    });
+}
+async function openVoting() {
+    const r = await api(`/teamhub/${GROUP_CODE}/open-voting/`);
+    if(r.ok) { toast('Voting opened!'); setTimeout(()=>location.reload(),800); }
+}
+async function closeVoting() {
+    if(!confirm('Close voting and assign leader based on current results?')) return;
+    const r = await api(`/teamhub/${GROUP_CODE}/close-voting/`);
+    if(r.ok) { toast('Leader assigned! 👑'); setTimeout(()=>location.reload(),900); }
+}
+
+/* ── AI STUDIO ── */
+function setAiMode(mode) {
+    document.querySelectorAll('.ai-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.ai-mode-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('panel'+mode.charAt(0).toUpperCase()+mode.slice(1)).classList.add('active');
+    document.getElementById('mode'+mode.charAt(0).toUpperCase()+mode.slice(1)+'Btn').classList.add('active');
+}
+function onPdfChosen(input) {
+    pdfFile = input.files[0];
+    document.getElementById('pdfChosen').textContent = pdfFile ? '✓ '+pdfFile.name : '';
+}
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('pdfDrop').classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if(f && f.name.endsWith('.pdf')) {
+        pdfFile = f;
+        document.getElementById('pdfChosen').textContent = '✓ '+f.name;
+    }
+}
+function showSpinner(msg) {
+    document.getElementById('spinnerText').textContent = msg;
+    document.getElementById('aiSpinner').classList.add('show');
+    document.getElementById('aiError').style.display='none';
+    document.getElementById('presResult').style.display='none';
+}
+function hideSpinner() { document.getElementById('aiSpinner').classList.remove('show'); }
+function showAiError(msg) {
+    const el = document.getElementById('aiError');
+    el.textContent = '⚠ '+msg; el.style.display='block';
+}
+
+async function generatePresentation() {
+    const topic = document.getElementById('topicInput').value.trim();
+    if(!topic) return toast('Please enter a topic','var(--pink)');
+    const btn = document.getElementById('btnGenerate');
+    btn.disabled=true; showSpinner('Generating presentation script…');
+    try {
+        const r = await api(`/teamhub/${GROUP_CODE}/generate/`, 'POST', {topic});
+        if(r.ok) renderResult(r);
+        else showAiError(r.error||'Generation failed');
+    } finally { btn.disabled=false; hideSpinner(); }
+}
+
+async function uploadPdf() {
+    if(!pdfFile) return toast('Please select a PDF file','var(--pink)');
+    const btn = document.getElementById('btnUpload');
+    btn.disabled=true; showSpinner('Reading PDF and generating script…');
+    try {
+        const fd = new FormData();
+        fd.append('pdf', pdfFile);
+        fd.append('csrfmiddlewaretoken', csrfToken());
+        const r = await fetch(`/teamhub/${GROUP_CODE}/upload-pdf/`, {method:'POST', body:fd});
+        const data = await r.json();
+        if(data.ok) renderResult(data);
+        else showAiError(data.error||'PDF processing failed');
+    } finally { btn.disabled=false; hideSpinner(); }
+}
+
+function renderResult(data) {
+    document.getElementById('fullTextBox').textContent = data.full_text || '';
+    const grid = document.getElementById('partsGrid');
+    grid.innerHTML = '';
+    (data.parts||[]).forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'part-card';
+        card.innerHTML = `
+            <div class="part-stripe"></div>
+            <div class="part-body">
+                <div class="part-header">
+                    <span class="part-num">PART ${p.part_number}</span>
+                    <span class="part-member">${p.member||'Unassigned'}</span>
+                    <button class="btn-copy" onclick="copyPart(this, ${JSON.stringify(p.text)})">Copy</button>
+                </div>
+                <div class="part-text">${escapeHtml(p.text)}</div>
+                <textarea class="part-notes" rows="2" placeholder="Personal notes…"
+                    onblur="saveNotes(${p.id}, this.value)"></textarea>
+            </div>`;
+        grid.appendChild(card);
+    });
+    document.getElementById('presResult').style.display='block';
+    document.getElementById('presResult').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copyPart(btn, text) {
+    navigator.clipboard.writeText(text).then(()=>{
+        btn.textContent='Copied ✓'; btn.classList.add('copied');
+        setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+}
+async function saveNotes(partId, notes) {
+    await api(`/teamhub/${GROUP_CODE}/notes/${partId}/`, 'POST', {notes});
+}
+function toggleFullText() {
+    const box = document.getElementById('fullTextBox');
+    const btn = event.currentTarget;
+    if(box.style.display==='block') { box.style.display='none'; btn.textContent='Show full script ▾'; }
+    else { box.style.display='block'; btn.textContent='Hide full script ▴'; }
+}
+function escapeHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function setDemoTopic(btn) {
+    document.getElementById('topicInput').value = btn.textContent.trim();
+    btn.style.borderColor = 'var(--purple)';
+    btn.style.color = '#fff';
+    setTimeout(()=>{ btn.style.borderColor=''; btn.style.color=''; }, 1200);
+}
+
+/* ── LIVE POLLING ── */
+updateVoteBars();
+setInterval(async ()=>{
+    try {
+        const r = await fetch(`/teamhub/${GROUP_CODE}/status/`);
+        const data = await r.json();
+        if(!data.ok) return;
+        totalMembers = data.member_count;
+        document.getElementById('memberCountBadge').textContent = data.member_count+'/'+data.max_members;
+        const bar = document.getElementById('capBar');
+        if(bar) bar.style.width = (data.member_count/data.max_members*100)+'%';
+        if(data.voting_open) { voteCounts=data.vote_counts; updateVoteBars(); }
+    } catch(e) {}
+}, 4000);
+</script>
+{% endblock %}

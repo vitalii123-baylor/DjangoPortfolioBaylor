@@ -45,9 +45,33 @@ def projects(request):
             'module_tag': 'SECURITY · BOT',
             'accent': 'var(--pink)',
             'accent_glow': 'var(--pink-glow)',
-        }
+        },
+        {
+            'title': 'TeamHub — Group Collab',
+            'desc': 'Student collaboration tool: create groups, elect a leader via anonymous voting, assign roles, and generate AI-split presentation scripts from a topic or uploaded PDF.',
+            'url': '/teamhub/',
+            'icon': '🎓',
+            'tech': ['Django', 'Python', 'Gemini AI', 'pypdf', 'AJAX'],
+            'module_tag': 'EDU · COLLAB',
+            'accent': 'var(--purple)',
+            'accent_glow': 'var(--purple-glow)',
+        },
+        {
+            'title': 'Learning Log',
+            'desc': 'Personal knowledge tracker built with Django — create topics, log daily entries, and visualize learning activity with a real-time Chart.js analytics dashboard.',
+            'url': 'https://github.com/vitalii123-baylor/projectDjango',
+            'icon': '📚',
+            'tech': ['Django', 'Python', 'Chart.js', 'Bootstrap 4', 'SQLite'],
+            'module_tag': 'EDU · TRACKER',
+            'accent': 'var(--orange)',
+            'accent_glow': 'rgba(255,140,0,0.45)',
+            'external': True,
+        },
     ]
     return render(request, 'core/projects.html', {'projects': project_list})
+
+def skills(request):
+    return render(request, 'core/skills.html')
 
 @require_POST
 def chat_ask(request):

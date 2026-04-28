@@ -200,91 +200,68 @@
             20%,22%,24%,55% { opacity: 0.4; }
         }
 
+        /* HAMBURGER */
+        .nav-hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            z-index: 1001;
+        }
+        .nav-hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--cyan);
+            border-radius: 2px;
+            box-shadow: 0 0 6px var(--cyan);
+            transition: 0.3s;
+        }
+        .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
         /* RESPONSIVE — navbar */
         @media (max-width: 768px) {
             .navbar { padding: 12px 20px; }
-            .nav-links { gap: 14px; }
         }
-        @media (max-width: 480px) {
-            .navbar { padding: 10px 16px; }
-            .nav-brand { font-size: 1rem; }
-            .nav-links { gap: 8px; }
-            .nav-links a { font-size: 0.6rem; letter-spacing: 0.06em; }
-            .nav-linkedin-label { display: none; }
-        }
-
-        /* CUSTOM CURSOR */
-        @media (hover: hover) and (pointer: fine), (hover: hover) and (pointer: coarse) and (min-width: 1024px) {
-            *, *::before, *::after { cursor: none !important; }
-
-            #cur-dot {
-                position: fixed; top: 0; left: 0; z-index: 99999;
-                width: 6px; height: 6px;
-                background: var(--cyan);
-                border-radius: 50%;
-                box-shadow: 0 0 8px var(--cyan), 0 0 16px var(--cyan-glow);
-                pointer-events: none;
-                transform: translate(-50%, -50%);
-                transition: background 0.15s, box-shadow 0.15s, transform 0.08s;
-                will-change: transform;
-            }
-
-            #cur-ring {
-                position: fixed; top: 0; left: 0; z-index: 99998;
-                width: 32px; height: 32px;
-                border: 1px solid rgba(0,229,255,0.6);
-                border-radius: 50%;
-                pointer-events: none;
-                transform: translate(-50%, -50%);
-                box-shadow: 0 0 8px var(--cyan-glow), inset 0 0 6px rgba(0,229,255,0.05);
-                transition: width 0.2s, height 0.2s, border-color 0.2s, box-shadow 0.2s;
-                will-change: transform;
-            }
-
-            /* crosshair lines */
-            #cur-ring::before, #cur-ring::after {
-                content: '';
+        @media (max-width: 640px) {
+            .nav-hamburger { display: flex; }
+            .nav-links {
+                display: none;
                 position: absolute;
-                background: rgba(0,229,255,0.35);
+                top: 100%;
+                left: 0; right: 0;
+                background: rgba(7,2,15,0.97);
+                backdrop-filter: blur(24px);
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 24px 28px;
+                gap: 22px;
+                border-bottom: 1px solid rgba(0,229,255,0.2);
+                box-shadow: 0 16px 40px rgba(0,0,0,0.5);
             }
-            #cur-ring::before {
-                width: 1px; height: 8px;
-                left: 50%; top: -12px;
-                transform: translateX(-50%);
-            }
-            #cur-ring::after {
-                width: 8px; height: 1px;
-                top: 50%; left: -12px;
-                transform: translateY(-50%);
-            }
-
-            /* hover state — pink target lock */
-            body.cur-hover #cur-dot {
-                background: var(--pink);
-                box-shadow: 0 0 10px var(--pink), 0 0 20px var(--pink-glow);
-                transform: translate(-50%, -50%) scale(1.5);
-            }
-            body.cur-hover #cur-ring {
-                width: 40px; height: 40px;
-                border-color: rgba(255, 45, 120, 0.7);
-                box-shadow: 0 0 12px var(--pink-glow), inset 0 0 8px rgba(255,45,120,0.05);
-            }
-
-            /* click pulse */
-            body.cur-click #cur-ring {
-                width: 48px; height: 48px;
-                border-color: var(--cyan);
-                opacity: 0.4;
-            }
+            .nav-links.open { display: flex; }
+            .nav-links a { font-size: 0.82rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.75); }
+            .nav-linkedin { padding: 10px 18px !important; }
         }
+
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="navbar" style="position:relative;">
         <a href="/" class="nav-brand"><span>VITALII</span>.SYS</a>
-        <div class="nav-links">
+        <button class="nav-hamburger" id="navToggle" aria-label="Toggle navigation">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="navLinks">
             <a href="{% url 'projects' %}">Projects</a>
+            <a href="{% url 'skills' %}">Skills</a>
             <a href="/api/expenses/dashboard/">Fin_Tracker</a>
             <a href="https://www.linkedin.com/in/vkandabarov/" target="_blank" rel="noopener" class="nav-linkedin" style="display:flex; align-items:center; gap:6px; color:var(--cyan); border:1px solid rgba(0,229,255,0.3); padding:7px 14px; border-radius:8px; box-shadow:0 0 8px var(--cyan-glow);">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
@@ -295,52 +272,20 @@
     {% block content %}{% endblock %}
     {% block extra_js %}{% endblock %}
 
-    <div id="cur-dot" style="opacity:0"></div>
-    <div id="cur-ring" style="opacity:0"></div>
-
     <script>
-        /* Custom cursor — only on pointer-fine devices */
+        /* Hamburger toggle */
         (function() {
-            const isDesktop = window.matchMedia('(hover: hover)').matches && !('ontouchstart' in window && navigator.maxTouchPoints > 1);
-            if (isDesktop) {
-                const dot  = document.getElementById('cur-dot');
-                const ring = document.getElementById('cur-ring');
-                let rx = 0, ry = 0, mx = 0, my = 0;
-
-                document.addEventListener('mousemove', e => {
-                    mx = e.clientX; my = e.clientY;
-                    dot.style.left = mx + 'px';
-                    dot.style.top  = my + 'px';
-                    if (dot.style.opacity === '0') {
-                        rx = mx; ry = my;
-                        dot.style.opacity = '1';
-                        ring.style.opacity = '1';
-                    }
+            const btn = document.getElementById('navToggle');
+            const links = document.getElementById('navLinks');
+            if (btn && links) {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('open');
+                    links.classList.toggle('open');
                 });
-
-                /* ring follows with smooth lag */
-                (function loop() {
-                    rx += (mx - rx) * 0.12;
-                    ry += (my - ry) * 0.12;
-                    ring.style.left = rx + 'px';
-                    ring.style.top  = ry + 'px';
-                    requestAnimationFrame(loop);
-                })();
-
-                /* hover state on clickable elements */
-                const clickables = 'a, button, input, textarea, select, label, [onclick], [role="button"]';
-                document.addEventListener('mouseover', e => {
-                    if (e.target.closest(clickables)) document.body.classList.add('cur-hover');
-                });
-                document.addEventListener('mouseout', e => {
-                    if (e.target.closest(clickables)) document.body.classList.remove('cur-hover');
-                });
-
-                /* click pulse */
-                document.addEventListener('mousedown', () => {
-                    document.body.classList.add('cur-click');
-                    setTimeout(() => document.body.classList.remove('cur-click'), 200);
-                });
+                links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+                    btn.classList.remove('open');
+                    links.classList.remove('open');
+                }));
             }
         })();
 

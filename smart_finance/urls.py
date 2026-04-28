@@ -5,4 +5,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.core.urls')),
     path('api/expenses/', include('apps.expense_tracker.urls')),
+    path('teamhub/', include('apps.group_collab.urls', namespace='group_collab')),
 ]

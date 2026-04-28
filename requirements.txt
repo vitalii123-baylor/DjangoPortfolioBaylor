@@ -4,3 +4,4 @@ google-genai>=1.0
 gunicorn
 whitenoise
 python-dotenv
+pypdf>=4.0

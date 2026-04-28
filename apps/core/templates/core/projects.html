@@ -187,7 +187,9 @@
                     <span class="tech-pill">{{ t }}</span>
                     {% endfor %}
                 </div>
-                <a href="{{ proj.url }}" class="btn-visit">Open Project ↗</a>
+                <a href="{{ proj.url }}" class="btn-visit"{% if proj.external %} target="_blank" rel="noopener"{% endif %}>
+                    {% if proj.external %}View on GitHub ↗{% else %}Open Project ↗{% endif %}
+                </a>
             </div>
         </div>
         {% endfor %}
