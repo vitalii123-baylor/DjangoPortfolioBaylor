@@ -7,6 +7,7 @@ urlpatterns = [
     path('',                                views.group_home,           name='home'),
     path('demo-generate/',                  views.demo_generate,        name='demo_generate'),
     path('demo-pdf/',                       views.demo_pdf,             name='demo_pdf'),
+    path('demo-extract/',                   views.demo_extract,         name='demo_extract'),
     path('tips/',                           views.get_tips,             name='tips'),
     path('rephrase/',                       views.rephrase_part,        name='rephrase'),
     path('create/',                         views.create_group,         name='create'),
