@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import json
 import math
@@ -167,9 +168,12 @@ PARTS:
 
 @require_POST
 def demo_pdf(request):
-    pdf_file = request.FILES.get('pdf')
-    if not pdf_file or not pdf_file.name.lower().endswith('.pdf'):
-        return JsonResponse({'ok': False, 'error': 'Please upload a .pdf file'})
+    upload = request.FILES.get('pdf')
+    if not upload:
+        return JsonResponse({'ok': False, 'error': 'Please upload a file'})
+    fname = upload.name.lower()
+    if not fname.endswith(('.pdf', '.pptx')):
+        return JsonResponse({'ok': False, 'error': 'Please upload a .pdf or .pptx file'})
     try:
         n = max(2, min(int(request.POST.get('n', 3)), 6))
     except (ValueError, TypeError):
@@ -179,32 +183,67 @@ def demo_pdf(request):
     except (ValueError, TypeError):
         duration = 0
 
-    try:
-        import pypdf
-        reader = pypdf.PdfReader(pdf_file)
-        num_pages = len(reader.pages)
-        raw_text = '\n'.join(page.extract_text() or '' for page in reader.pages).strip()
-        if not raw_text:
-            return JsonResponse({'ok': False, 'error': 'Could not extract text from this PDF'})
-        raw_text = raw_text[:14000]
-    except ImportError:
-        return JsonResponse({'ok': False, 'error': 'pypdf not installed'})
-    except Exception as e:
-        return JsonResponse({'ok': False, 'error': f'PDF read error: {e}'})
+    page_texts = []
+    page_images = []   # one base64 data-URL (or None) per page/slide
 
-    # Distribute PDF pages fairly: each presenter gets ceil(pages/n) slides
+    if fname.endswith('.pdf'):
+        try:
+            import fitz  # pymupdf
+            file_bytes = upload.read()
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            mat = fitz.Matrix(1.67, 1.67)  # ~43 DPI — compact thumbnails
+            for page in doc:
+                page_texts.append(page.get_text() or '')
+                pix = page.get_pixmap(matrix=mat, colorspace=fitz.csRGB)
+                img_bytes = pix.tobytes(output="jpeg", jpg_quality=88)
+                page_images.append(f"data:image/jpeg;base64,{base64.b64encode(img_bytes).decode()}")
+            doc.close()
+        except ImportError:
+            return JsonResponse({'ok': False, 'error': 'pymupdf not installed — run: pip install pymupdf'})
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'PDF error: {e}'})
+    else:
+        try:
+            from pptx import Presentation as PptxPres
+            prs = PptxPres(upload)
+            for slide in prs.slides:
+                texts = []
+                img_data = None
+                for shape in slide.shapes:
+                    if img_data is None and getattr(shape, 'shape_type', None) == 13:
+                        try:
+                            blob = shape.image.blob
+                            if len(blob) <= 800_000:
+                                ct = shape.image.content_type or 'image/png'
+                                img_data = f"data:{ct};base64,{base64.b64encode(blob).decode()}"
+                        except Exception:
+                            pass
+                    if hasattr(shape, 'text') and shape.text.strip():
+                        texts.append(shape.text.strip())
+                page_texts.append('\n'.join(texts))
+                page_images.append(img_data)
+        except ImportError:
+            return JsonResponse({'ok': False, 'error': 'python-pptx not installed'})
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'PPTX read error: {e}'})
+
+    num_pages = len(page_texts)
+    raw_text = '\n'.join(page_texts).strip()
+    if not raw_text:
+        return JsonResponse({'ok': False, 'error': 'Could not extract text from this file'})
+    raw_text = raw_text[:14000]
+
     spp = max(1, math.ceil(num_pages / n))
-    # If duration was given, respect word-count constraints too
     if duration:
-        spp_from_duration = _slides_per_part(duration, n)
-        spp = max(spp, spp_from_duration)
+        spp = max(spp, _slides_per_part(duration, n))
     total_slides = n * spp
     parts_tmpl = _build_parts_template(n, spp)
-    prompt = f"""You are helping a student group create a presentation from their uploaded PDF.
+    file_label = 'PPTX slides' if fname.endswith('.pptx') else 'PDF pages'
+    prompt = f"""You are helping a student group create a presentation from their uploaded file.
 Number of presenters: {n}{_duration_hint(duration, n)}
-PDF pages: {num_pages} — distribute content evenly, {spp} slides per presenter ({total_slides} slides total, numbered {1}–{total_slides} continuously across ALL parts).
+{file_label}: {num_pages} — distribute content evenly, {spp} slides per presenter ({total_slides} slides total, numbered {1}–{total_slides} continuously across ALL parts).
 
-PDF content:
+Content:
 \"\"\"
 {raw_text}
 \"\"\"
@@ -228,14 +267,120 @@ PARTS:
         return JsonResponse({
             'ok': True,
             'full_text': full_text,
-            'parts': [{'part_number': i + 1, 'text': p['text'], 'slides': p['slides']}
-                      for i, p in enumerate(parts)],
+            'parts': [
+                {
+                    'part_number': i + 1,
+                    'text': p['text'],
+                    'slides': p['slides'],
+                    'page_start': i * spp + 1,
+                    'page_end': min((i + 1) * spp, num_pages),
+                    'page_images': page_images[i * spp: (i + 1) * spp],
+                }
+                for i, p in enumerate(parts)
+            ],
         })
     except Exception as e:
         err = str(e)
         if '429' in err or 'quota' in err.lower():
             return JsonResponse({'ok': False, 'error': 'AI quota exceeded — try again later'})
         return JsonResponse({'ok': False, 'error': err})
+
+
+@require_POST
+def demo_extract(request):
+    """Extract PDF or PPTX content per page/slide, split evenly across N speakers."""
+    upload = request.FILES.get('file')
+    if not upload:
+        return JsonResponse({'ok': False, 'error': 'No file uploaded'})
+    try:
+        n = max(2, min(int(request.POST.get('n', 3)), 6))
+    except (ValueError, TypeError):
+        n = 3
+
+    name = upload.name.lower()
+    raw_slides = []
+
+    if name.endswith('.pdf'):
+        try:
+            import fitz  # pymupdf
+            file_bytes = upload.read()
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            mat = fitz.Matrix(1.67, 1.67)
+            for i, page in enumerate(doc):
+                text = page.get_text().strip()
+                pix = page.get_pixmap(matrix=mat, colorspace=fitz.csRGB)
+                img_data = f"data:image/jpeg;base64,{base64.b64encode(pix.tobytes(output='jpeg', jpg_quality=88)).decode()}"
+                raw_slides.append({
+                    'number': i + 1,
+                    'title': f'Page {i + 1}',
+                    'text': text or '(no text extracted)',
+                    'image': img_data,
+                })
+            doc.close()
+        except ImportError:
+            return JsonResponse({'ok': False, 'error': 'pymupdf not installed — run: pip install pymupdf'})
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'PDF error: {e}'})
+
+    elif name.endswith('.pptx'):
+        try:
+            from pptx import Presentation
+            prs = Presentation(upload)
+            for i, slide in enumerate(prs.slides):
+                title = ''
+                bodies = []
+                img_data = None
+                for shape in slide.shapes:
+                    if img_data is None and getattr(shape, 'shape_type', None) == 13:
+                        try:
+                            blob = shape.image.blob
+                            if len(blob) <= 800_000:
+                                ct = shape.image.content_type or 'image/png'
+                                img_data = f"data:{ct};base64,{base64.b64encode(blob).decode()}"
+                        except Exception:
+                            pass
+                    if not hasattr(shape, 'text'):
+                        continue
+                    t = shape.text.strip()
+                    if not t:
+                        continue
+                    ph = getattr(shape, 'placeholder_format', None)
+                    if ph and ph.idx == 0:
+                        title = t
+                    else:
+                        bodies.append(t)
+                if not title and bodies:
+                    title = bodies.pop(0)
+                raw_slides.append({
+                    'number': i + 1,
+                    'title': title or f'Slide {i + 1}',
+                    'text': '\n'.join(bodies),
+                    'image': img_data,
+                })
+        except ImportError:
+            return JsonResponse({'ok': False, 'error': 'python-pptx not installed — run: pip install python-pptx'})
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': f'PPTX error: {e}'})
+    else:
+        return JsonResponse({'ok': False, 'error': 'Please upload a .pdf or .pptx file'})
+
+    if not raw_slides:
+        return JsonResponse({'ok': False, 'error': 'No content found in file'})
+
+    total = len(raw_slides)
+    per = math.ceil(total / n)
+    parts = []
+    for i in range(n):
+        chunk = raw_slides[i * per:(i + 1) * per]
+        if chunk:
+            parts.append({
+                'part_number': i + 1,
+                'slides': chunk,
+                'page_start': chunk[0]['number'],
+                'page_end': chunk[-1]['number'],
+            })
+
+    return JsonResponse({'ok': True, 'parts': parts, 'total': total, 'filename': upload.name})
 
 
 @require_POST

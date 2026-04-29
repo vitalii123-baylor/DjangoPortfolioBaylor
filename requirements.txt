@@ -5,3 +5,5 @@ gunicorn
 whitenoise
 python-dotenv
 pypdf>=4.0
+pymupdf>=1.24
+python-pptx>=0.6
