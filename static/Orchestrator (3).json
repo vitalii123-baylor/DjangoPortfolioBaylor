@@ -1,0 +1,518 @@
+{
+  "name": "Orchestrator",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vitalii23.app.n8n.cloud/webhook/intake",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.message }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1568,
+        208
+      ],
+      "id": "5df0628e-fd30-4a62-9f49-90adde53ac97",
+      "name": "Call Intake"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vitalii23.app.n8n.cloud/webhook/Agent-Pricing",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ services: $json.job.services, zip: $json.job.zip, urgency: $json.job.urgency }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1120,
+        208
+      ],
+      "id": "ec796875-b228-42b9-b507-8a3b626202c3",
+      "name": "Call Pricing"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vitalii23.app.n8n.cloud/webhook/agent-scheduling",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ preferred_days: $node[\"Job Store\"].json.job.preferred_days }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -688,
+        208
+      ],
+      "id": "7f075c92-d835-4a9d-a12a-d799d023d05a",
+      "name": "Call Scheduling"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проходимся по всем входящим объектам (items)\nreturn items.map(item => {\n  const data = item.json; // Берем данные текущего объекта\n  const keys = Object.keys(data);\n\n  // Улучшенная функция поиска\n  function find(keyword, excludeKeyword = null) {\n    const k = keys.find(key => {\n      const lowerKey = key.toLowerCase();\n      const containsTarget = lowerKey.includes(keyword.toLowerCase());\n      // Если есть исключение (например, не брать \"email\" когда ищем \"address\")\n      const matchesExclude = excludeKeyword && lowerKey.includes(excludeKeyword.toLowerCase());\n      return containsTarget && !matchesExclude;\n    });\n    return k ? (data[k] || \"\") : \"\";\n  }\n\n  // Извлекаем данные с более точными приоритетами\n  const fullName = (find(\"Your Name\") || find(\"full name\") || find(\"name\") || \"\").toString();\n  const email = (find(\"email\") || \"\").toString();\n  \n  // Ищем адрес, исключая ключи, где есть \"email\"\n  const address = (find(\"service address\") || find(\"address\", \"email\") || \"\").toString();\n  \n  const description = (find(\"describe\") || find(\"service need\") || find(\"description\") || \"\").toString();\n\n  const firstName = fullName.trim().split(\" \")[0] || \"\";\n  const message = `${description}\\nService address: ${address}`;\n\n  return {\n    json: {\n      client_name: fullName.trim(),\n      client_first_name: firstName,\n      client_email: email.trim(),\n      service_address: address.trim(),\n      message: message\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1776,
+        208
+      ],
+      "id": "581ebb86-a267-4bb3-be6f-b7422f0ab83e",
+      "name": "Data from Sheet"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  // item.json — это данные текущего объекта в цикле\n  const data = item.json;\n\n  return {\n    json: {\n      job: {\n        // Проверяем наличие services или оборачиваем одиночный service в массив\n        services: data.services || (data.service ? [data.service] : []),\n        address: data.address,\n        unit: data.unit,\n        zip: data.zip,\n        urgency: data.urgency,\n        preferred_days: data.preferred_days,\n        notes: data.notes\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        208
+      ],
+      "id": "9eb06624-8a99-4f3b-a356-cf9df2e63b19",
+      "name": "Job Store"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      pricing: {\n        estimate: item.json.estimate,\n        breakdown: item.json.breakdown,\n        currency: item.json.currency\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        208
+      ],
+      "id": "3f9b1eb3-8360-4759-b2d3-9516a8fddcd0",
+      "name": "Pricing Store "
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      scheduling: {\n        proposed_slots: item.json.proposed_slots,\n        note: item.json.note\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        208
+      ],
+      "id": "5a9bea96-eb23-4640-99f1-57507609870f",
+      "name": "Schedule Store "
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-urgency",
+              "leftValue": "={{ $node[\"Job Store\"].json.job.urgency }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "cond-estimate",
+              "leftValue": "={{ $node[\"Pricing Store \"].json.pricing.estimate }}",
+              "rightValue": 300,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        208
+      ],
+      "id": "ce97c916-3c9b-4263-b93c-c6428439e689",
+      "name": "IF"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map((item, index) => {\n  // Используем $(...).item.json, чтобы n8n автоматически \n  // подтянул данные именно для ТЕКУЩЕГО индекса (0, 1, 2...)\n  \n  const job = $(\"Job Store\").item.json.job;\n  \n  // ВНИМАНИЕ: Проверь, есть ли пробел в названии узлов \"Pricing Store \" \n  // и \"Schedule Store \". В твоем коде он был, я его оставил.\n  const pricing = $(\"Pricing Store \").item.json.pricing;\n  const scheduling = $(\"Schedule Store \").item.json.scheduling;\n  const firstName = $(\"Data from Sheet\").item.json.client_first_name;\n\n  return {\n    json: {\n      commsPayload: {\n        job: job,\n        pricing: pricing,\n        scheduling: scheduling,\n        email_type: \"client\",\n        client_name: firstName\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        400
+      ],
+      "id": "78d0e3fd-e913-4a08-9868-f21afc0a7501",
+      "name": "Payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map((item, index) => {\n  // Используем $(...).item, чтобы сопоставить данные по индексу: \n  // первый в \"Job Store\" к первому в текущем узле и т.д.\n  \n  const job = $(\"Job Store\").item.json.job;\n  \n  // Проверь наличие пробелов в названиях узлов (в твоем коде они были)\n  const pricing = $(\"Pricing Store \").item.json.pricing;\n  const scheduling = $(\"Schedule Store \").item.json.scheduling;\n  \n  // Данные из узла Data from Sheet\n  const sheetData = $(\"Data from Sheet\").item.json;\n\n  return {\n    json: {\n      commsPayload: {\n        job: job,\n        pricing: pricing,\n        scheduling: scheduling,\n        email_type: \"operations\",\n        client_name: sheetData.client_name,\n        client_email: sheetData.client_email\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "edc98ec3-d0d6-48ca-ac61-6cff9a1b0346",
+      "name": "Ops Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vitalii23.app.n8n.cloud/webhook/agent-comms2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.commsPayload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "d8f7ad39-1db3-41c6-96f8-5a2bb34c9642",
+      "name": "Call Comms"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://vitalii23.app.n8n.cloud/webhook/agent-comms2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.commsPayload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        400
+      ],
+      "id": "248d7170-8bcb-46e4-aa61-ebf4a059acb0",
+      "name": "Call Comms1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      comms: {\n        subject: item.json.subject,\n        message: item.json.message\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        400
+      ],
+      "id": "25f8e8f1-46d8-4522-bb84-317a856584b3",
+      "name": "Comms1 Store "
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      comms: {\n        subject: item.json.subject,\n        message: item.json.message\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c3a840c5-890b-4efa-bafb-82ef9837758d",
+      "name": "Comms Store "
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $node[\"Data from Sheet\"].json.client_email }}",
+        "subject": "={{ $json.comms.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.comms.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        400
+      ],
+      "id": "c301554e-13f6-42ae-90eb-67f34e750f0f",
+      "name": "Gmail",
+      "webhookId": "11c2b82b-132b-4cc2-b7e8-98a1870aa8c0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DZm6KIMUDjPDe5vn",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "vtkm96@mail.com",
+        "subject": "={{ $json.comms.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.comms.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "bd366404-0b0d-44a6-a7f3-53a616cdd952",
+      "name": "Gmail1",
+      "webhookId": "6972123b-841b-4f54-8f21-5a6558f85200",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DZm6KIMUDjPDe5vn",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1kC3OavBCCbZOBMdDFqWIHHUCo83qFyXyyLiGG14IEZ8",
+          "mode": "list",
+          "cachedResultName": "AI (Responses)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1kC3OavBCCbZOBMdDFqWIHHUCo83qFyXyyLiGG14IEZ8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1122141449,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1kC3OavBCCbZOBMdDFqWIHHUCo83qFyXyyLiGG14IEZ8/edit#gid=1122141449"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2000,
+        208
+      ],
+      "id": "80ae9d5e-96a8-4c33-bdad-77a77635ca25",
+      "name": "Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "jhedfbNU8b8kAkpl",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Call Intake": {
+      "main": [
+        [
+          {
+            "node": "Job Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Pricing": {
+      "main": [
+        [
+          {
+            "node": "Pricing Store ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Scheduling": {
+      "main": [
+        [
+          {
+            "node": "Schedule Store ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data from Sheet": {
+      "main": [
+        [
+          {
+            "node": "Call Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Store": {
+      "main": [
+        [
+          {
+            "node": "Call Pricing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pricing Store ": {
+      "main": [
+        [
+          {
+            "node": "Call Scheduling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Store ": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Ops Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload": {
+      "main": [
+        [
+          {
+            "node": "Call Comms1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ops Payload": {
+      "main": [
+        [
+          {
+            "node": "Call Comms",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Comms": {
+      "main": [
+        [
+          {
+            "node": "Comms Store ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Comms1": {
+      "main": [
+        [
+          {
+            "node": "Comms1 Store ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comms1 Store ": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comms Store ": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "Data from Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "08940f99-39be-4e4f-a824-4c02ac566088",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "497f0020abe18120b36906a4821422b38b496c0cd86cc24778d5ccff21fc7528"
+  },
+  "id": "V3JVviK7Bq87mQGI",
+  "tags": []
+}

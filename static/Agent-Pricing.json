@@ -1,0 +1,114 @@
+{
+  "name": "Agent-Pricing",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Agent-Pricing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a8760009-46b5-4333-b26f-e28f3320ca65",
+      "name": "Webhook",
+      "webhookId": "0273b9a3-1d50-4aa4-8765-181624c28f45"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n\"catalog\": {\n  \"faucet_replace\": 120,\n  \"ceiling_fan_install\": 150,\n  \"tv_mount\": 140,\n  \"garbage_disposal_replace\": 160,\n  \"drywall_patch_base\": 90\n  }\n}",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0c2f7b0f-edc3-445f-9dd5-2be65d79ca9f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const services = $json.body.services || ($json.body.service ? [$json.body.service] : []);\nconst zip = $json.body.zip || \"unknown\";\nconst urgency = $json.body.urgency || \"low\";\nconst catalog = $json.catalog || {};\nlet base = 0;\nfor (const s of services) {\n  base += catalog[s] ?? 120;\n}\nif (base === 0) base = 120;\nlet travel = 20;\nif (zip === \"76706\") travel = 0;\nelse if (zip === \"76708\") travel = 10;\nlet subtotal = base + travel;\nlet rush = 0;\nif (urgency === \"high\") rush = Math.round(subtotal * 0.20);\nreturn [{\nestimate: subtotal + rush,\nbreakdown: { base, travel, rush },\ncurrency: \"USD\"\n}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "144c3e0f-038b-41fd-a22c-77c2e964599e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        0
+      ],
+      "id": "4cc022a6-dd44-49eb-9d2a-bc7f22bca0a6",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "161a035a-567c-4ad4-bcc1-e618ff564109",
+  "meta": {
+    "instanceId": "497f0020abe18120b36906a4821422b38b496c0cd86cc24778d5ccff21fc7528"
+  },
+  "id": "4atJs2rz8haYBms9",
+  "tags": []
+}

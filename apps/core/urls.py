@@ -5,5 +5,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('projects/', views.projects, name='projects'),
     path('skills/', views.skills, name='skills'),
+    path('projects/n8n-agents/', views.n8n_agents, name='n8n_agents'),
     path('api/chat/ask/', views.chat_ask, name='chat_ask'),
 ]

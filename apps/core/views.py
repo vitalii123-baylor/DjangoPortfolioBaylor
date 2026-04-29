@@ -57,6 +57,16 @@ def projects(request):
             'accent_glow': 'var(--purple-glow)',
         },
         {
+            'title': 'Handyman AI Agents',
+            'desc': 'Multi-agent n8n automation for a handyman service — Google Sheets trigger, AI-powered intake/pricing/scheduling agents, and smart email routing via Gemini AI.',
+            'url': '/projects/n8n-agents/',
+            'icon': '🤖',
+            'tech': ['n8n', 'Gemini AI', 'Google Sheets', 'Gmail API', 'JavaScript'],
+            'module_tag': 'AUTOMATION · AI',
+            'accent': '#f59e0b',
+            'accent_glow': 'rgba(245,158,11,0.4)',
+        },
+        {
             'title': 'Learning Log',
             'desc': 'Personal knowledge tracker built with Django — create topics, log daily entries, and visualize learning activity with a real-time Chart.js analytics dashboard.',
             'url': 'https://github.com/vitalii123-baylor/projectDjango',
@@ -72,6 +82,9 @@ def projects(request):
 
 def skills(request):
     return render(request, 'core/skills.html')
+
+def n8n_agents(request):
+    return render(request, 'core/n8n_agents.html')
 
 @require_POST
 def chat_ask(request):

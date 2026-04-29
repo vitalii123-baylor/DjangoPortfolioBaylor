@@ -169,8 +169,9 @@
     <!-- Cards -->
     <div class="projects-grid">
         {% for proj in projects %}
-        <div class="project-card reveal"
-             style="--accent:{{ proj.accent|default:'var(--cyan)' }}; --accent-glow:{{ proj.accent_glow|default:'var(--cyan-glow)' }};">
+        <a href="{{ proj.url }}" class="project-card reveal"
+             style="--accent:{{ proj.accent|default:'var(--cyan)' }}; --accent-glow:{{ proj.accent_glow|default:'var(--cyan-glow)' }}; text-decoration:none; color:inherit;"
+             {% if proj.external %}target="_blank" rel="noopener"{% endif %}>
             <div class="card-stripe"></div>
             <div class="card-corner">SYS_{{ forloop.counter|stringformat:"02d" }}</div>
             <div class="card-body">
@@ -187,11 +188,11 @@
                     <span class="tech-pill">{{ t }}</span>
                     {% endfor %}
                 </div>
-                <a href="{{ proj.url }}" class="btn-visit"{% if proj.external %} target="_blank" rel="noopener"{% endif %}>
+                <div class="btn-visit">
                     {% if proj.external %}View on GitHub ↗{% else %}Open Project ↗{% endif %}
-                </a>
+                </div>
             </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
 
