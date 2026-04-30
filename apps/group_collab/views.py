@@ -229,9 +229,6 @@ def demo_pdf(request):
 
     num_pages = len(page_texts)
     raw_text = '\n'.join(page_texts).strip()
-    if not raw_text:
-        return JsonResponse({'ok': False, 'error': 'Could not extract text from this file'})
-    raw_text = raw_text[:14000]
 
     spp = max(1, math.ceil(num_pages / n))
     if duration:
@@ -239,31 +236,9 @@ def demo_pdf(request):
     total_slides = n * spp
     parts_tmpl = _build_parts_template(n, spp)
     file_label = 'PPTX slides' if fname.endswith('.pptx') else 'PDF pages'
-    prompt = f"""You are helping a student group create a presentation from their uploaded file.
-Number of presenters: {n}{_duration_hint(duration, n)}
-{file_label}: {num_pages} — distribute content evenly, {spp} slides per presenter ({total_slides} slides total, numbered {1}–{total_slides} continuously across ALL parts).
 
-Content:
-\"\"\"
-{raw_text}
-\"\"\"
-
-1. Extract key information and restructure it into a clear, engaging presentation script.
-2. Remove page numbers, headers, footnotes, and formatting artifacts.
-3. Divide into exactly {n} parts, each with exactly {spp} slides (title + speaker notes).
-4. Slide numbers must be CONTINUOUS across all parts — do NOT restart from 1 in each part.
-
-Reply in this EXACT format:
-
-FULL_TEXT:
-<complete restructured script>
-
-PARTS:
-{parts_tmpl}"""
-
-    try:
-        resp = _get_client().models.generate_content(model='gemini-2.5-flash-lite', contents=prompt)
-        full_text, parts = _parse_ai_response(resp.text, n)
+    def _build_result(resp_text):
+        full_text, parts = _parse_ai_response(resp_text, n)
         return JsonResponse({
             'ok': True,
             'full_text': full_text,
@@ -279,11 +254,62 @@ PARTS:
                 for i, p in enumerate(parts)
             ],
         })
+
+    # ── PATH A: text layer exists ──────────────────────────────────────────────
+    if raw_text:
+        prompt = (
+            f"You are helping a student group create a presentation from their uploaded file.\n"
+            f"Number of presenters: {n}{_duration_hint(duration, n)}\n"
+            f"{file_label}: {num_pages} — {spp} slides per presenter "
+            f"({total_slides} total, numbered 1–{total_slides} continuously).\n\n"
+            f'Content:\n"""\n{raw_text[:14000]}\n"""\n\n'
+            f"1. Extract key information and restructure into a clear, engaging script.\n"
+            f"2. Remove page numbers, headers, footnotes, and artifacts.\n"
+            f"3. Divide into exactly {n} parts, each with exactly {spp} slides (title + speaker notes).\n"
+            f"4. Slide numbers CONTINUOUS across all parts — do NOT restart from 1.\n\n"
+            f"Reply in this EXACT format:\n\nFULL_TEXT:\n<complete script>\n\nPARTS:\n{parts_tmpl}"
+        )
+        try:
+            resp = _get_client().models.generate_content(model='gemini-2.5-flash-lite', contents=prompt)
+            return _build_result(resp.text)
+        except Exception as e:
+            err = str(e)
+            if '429' in err or 'quota' in err.lower():
+                return JsonResponse({'ok': False, 'error': 'AI quota exceeded — try again later'})
+            return JsonResponse({'ok': False, 'error': err})
+
+    # ── PATH B: no text layer — use Gemini Vision on page images ──────────────
+    if not page_images:
+        return JsonResponse({'ok': False, 'error': 'Could not extract content from this file'})
+
+    vision_prompt = (
+        f"This is an image-based PDF with {num_pages} page(s). "
+        f"Read all visible text and diagrams from the provided page images.\n"
+        f"Number of presenters: {n}{_duration_hint(duration, n)}\n"
+        f"Pages: {num_pages} — {spp} slides per presenter ({total_slides} total, numbered 1–{total_slides} continuously).\n\n"
+        f"1. Extract all readable content from the images.\n"
+        f"2. Restructure into a clear, engaging presentation script.\n"
+        f"3. Divide into exactly {n} parts, each with exactly {spp} slides (title + speaker notes).\n"
+        f"4. Slide numbers CONTINUOUS across all parts — do NOT restart from 1.\n\n"
+        f"Reply in this EXACT format:\n\nFULL_TEXT:\n<complete script>\n\nPARTS:\n{parts_tmpl}"
+    )
+    try:
+        from google.genai import types as gtypes
+        content_parts = [gtypes.Part.from_text(text=vision_prompt)]
+        for img_url in page_images[:10]:
+            _, b64 = img_url.split(',', 1)
+            content_parts.append(gtypes.Part.from_bytes(
+                data=base64.b64decode(b64), mime_type='image/jpeg'
+            ))
+        resp = _get_client().models.generate_content(
+            model='gemini-2.5-flash-lite', contents=content_parts
+        )
+        return _build_result(resp.text)
     except Exception as e:
         err = str(e)
-        if '429' in err or 'quota' in err.lower():
-            return JsonResponse({'ok': False, 'error': 'AI quota exceeded — try again later'})
-        return JsonResponse({'ok': False, 'error': err})
+        if any(x in err for x in ('429', 'RESOURCE_EXHAUSTED', 'quota', 'exhausted')):
+            return JsonResponse({'ok': False, 'error': 'AI quota exceeded — try again later (free tier: 20 req/day)'})
+        return JsonResponse({'ok': False, 'error': 'Vision extraction failed: ' + err[:120]})
 
 
 @require_POST
