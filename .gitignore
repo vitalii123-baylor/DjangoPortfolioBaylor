@@ -7,3 +7,6 @@ venv/
 env/
 *.log
 .claude/
+TE-frontend/
+te-frontend/
+generate_resume.py
