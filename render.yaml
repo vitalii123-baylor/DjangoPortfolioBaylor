@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: djangoportfoliobaylor
+    env: python
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    startCommand: "python manage.py migrate --noinput && gunicorn smart_finance.wsgi:application"
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
